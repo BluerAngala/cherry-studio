@@ -281,7 +281,7 @@ export const initialState: SettingsState = {
   windowStyle: isMac ? 'transparent' : 'opaque',
   fontSize: 14,
   topicPosition: 'left',
-  showTopicTime: false,
+  showTopicTime: true,
   pinTopicsToTop: false,
   assistantIconType: 'emoji',
   pasteLongTextAsFile: false,
@@ -320,7 +320,7 @@ export const initialState: SettingsState = {
   codeFancyBlock: true,
   mathEngine: 'KaTeX',
   mathEnableSingleDollar: true,
-  messageStyle: 'plain',
+  messageStyle: 'bubble',
   foldDisplayMode: 'expanded',
   gridColumns: 2,
   gridPopoverTrigger: 'click',
@@ -381,8 +381,8 @@ export const initialState: SettingsState = {
   minappsOpenLinkExternal: false,
   minAppRegion: 'auto',
   enableDataCollection: false,
-  enableSpellCheck: false,
-  spellCheckLanguages: [],
+  enableSpellCheck: true,
+  spellCheckLanguages: ['zh-CN', 'en-US'],
   enableQuickPanelTriggers: false,
   // 消息操作确认设置
   confirmDeleteMessage: true,
@@ -441,7 +441,7 @@ export const initialState: SettingsState = {
   // Developer mode
   enableDeveloperMode: false,
   // UI
-  navbarPosition: 'top',
+  navbarPosition: 'left',
   // API Server
   apiServer: {
     enabled: false,

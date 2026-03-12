@@ -181,7 +181,7 @@ if (!app.requestSingleInstanceLock()) {
     if (isDev) {
       installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
         .then((name) => logger.info(`Added Extension:  ${name}`))
-        .catch((err) => logger.error('An error occurred: ', err))
+        .catch((err) => logger.warn('Failed to install DevTools extensions, skipping:', err?.message || err))
     }
 
     //start selection assistant service

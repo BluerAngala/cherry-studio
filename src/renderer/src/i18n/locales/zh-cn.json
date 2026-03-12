@@ -2587,6 +2587,13 @@
     },
     "title": "Ollama"
   },
+  "open": {
+    "cherryin": {
+      "ai": "备用域名 (open.cherryin.ai)",
+      "cc": "加速域名 (open.cherryin.cc)",
+      "net": "国际域名 (open.cherryin.net)"
+    }
+  },
   "openclaw": {
     "checking_installation": "正在检查 OpenClaw 安装状态...",
     "description": "使用 Cherry Studio 服务商为 OpenClaw 提供支持，OpenClaw 是您的个人 AI 助手，可在 WhatsApp、Telegram、Slack、Discord 等平台上使用。",

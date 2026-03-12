@@ -14,17 +14,17 @@ const API_HOST_OPTIONS = [
   {
     value: 'https://open.cherryin.cc',
     labelKey: '加速域名',
-    description: 'open.cherryin.cc'
+    i18nKey: 'open.cherryin.cc'
   },
   {
     value: 'https://open.cherryin.net',
     labelKey: '国际域名',
-    description: 'open.cherryin.net'
+    i18nKey: 'open.cherryin.net'
   },
   {
     value: 'https://open.cherryin.ai',
     labelKey: '备用域名',
-    description: 'open.cherryin.ai'
+    i18nKey: 'open.cherryin.ai'
   }
 ]
 
@@ -52,7 +52,7 @@ const CherryINSettings: FC<CherryINSettingsProps> = ({ providerId, apiHost, setA
         label: (
           <div className="flex flex-col gap-0.5">
             <span>{option.labelKey}</span>
-            <span className="text-[var(--color-text-3)] text-xs">{t(option.description)}</span>
+            <span className="text-(--color-text-3) text-xs">{t(option.i18nKey as any)}</span>
           </div>
         )
       })),

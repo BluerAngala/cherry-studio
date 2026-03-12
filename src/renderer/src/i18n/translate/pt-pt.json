@@ -2587,6 +2587,13 @@
     },
     "title": "Ollama"
   },
+  "open": {
+    "cherryin": {
+      "ai": "[to be translated]:Backup Domain (open.cherryin.ai)",
+      "cc": "[to be translated]:Accelerated Domain (open.cherryin.cc)",
+      "net": "[to be translated]:International Domain (open.cherryin.net)"
+    }
+  },
   "openclaw": {
     "checking_installation": "Verificando a instalação do OpenClaw...",
     "description": "Integre provedores do Cherry Studio com o Gateway OpenClaw para habilitar agentes de codificação de IA como Claude Code, Qwen-Coder e muitos outros.",
