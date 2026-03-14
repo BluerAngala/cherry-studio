@@ -499,6 +499,9 @@
   },
   "assistants": {
     "abbr": "アシスタント",
+    "add": {
+      "title": "[to be translated]:Add Assistant"
+    },
     "clear": {
       "content": "トピックをクリアすると、アシスタント内のすべてのトピックとファイルが削除されます。続行しますか？",
       "title": "トピックをクリア"
@@ -522,6 +525,14 @@
     "list": {
       "showByList": "リスト表示",
       "showByTags": "タグ表示"
+    },
+    "mention": {
+      "clear": {
+        "assistants": "[to be translated]:Clear selected assistants"
+      },
+      "select": {
+        "title": "[to be translated]:Select Assistant"
+      }
     },
     "presets": {
       "add": {

@@ -375,8 +375,8 @@ export const InputbarCore: FC<InputbarCoreProps> = ({
         })
       }
 
-      const openMentionPanelAt = (position: number) => {
-        triggers.emit(QuickPanelReservedSymbol.MentionModels, {
+      const openMentionAssistantsPanelAt = (position: number) => {
+        triggers.emit(QuickPanelReservedSymbol.MentionAssistants, {
           type: 'input',
           position,
           originalText: newText
@@ -387,7 +387,7 @@ export const InputbarCore: FC<InputbarCoreProps> = ({
         const hasRootMenuItems = triggers.getRootMenu().length > 0
         const textBeforeCursor = newText.slice(0, cursorPosition)
         const lastRootIndex = textBeforeCursor.lastIndexOf(QuickPanelReservedSymbol.Root)
-        const lastMentionIndex = textBeforeCursor.lastIndexOf(QuickPanelReservedSymbol.MentionModels)
+        const lastMentionIndex = textBeforeCursor.lastIndexOf('@')
         const lastTriggerIndex = Math.max(lastRootIndex, lastMentionIndex)
 
         const allowResumeSearch =
@@ -404,8 +404,8 @@ export const InputbarCore: FC<InputbarCoreProps> = ({
           if (hasBoundary && (!hasSearchContent || isDeletion || allowResumeSearch)) {
             if (triggerChar === QuickPanelReservedSymbol.Root && hasRootMenuItems) {
               openRootPanelAt(lastTriggerIndex)
-            } else if (triggerChar === QuickPanelReservedSymbol.MentionModels) {
-              openMentionPanelAt(lastTriggerIndex)
+            } else if (triggerChar === '@') {
+              openMentionAssistantsPanelAt(lastTriggerIndex)
             }
           }
         }
@@ -419,12 +419,12 @@ export const InputbarCore: FC<InputbarCoreProps> = ({
           }
         }
 
-        if (lastSymbol === QuickPanelReservedSymbol.MentionModels && hasValidTriggerBoundary) {
-          if (quickPanel.isVisible && quickPanel.symbol !== QuickPanelReservedSymbol.MentionModels) {
+        if (lastSymbol === '@' && hasValidTriggerBoundary) {
+          if (quickPanel.isVisible && quickPanel.symbol !== QuickPanelReservedSymbol.MentionAssistants) {
             quickPanel.close('switch-symbol')
           }
-          if (!quickPanel.isVisible || quickPanel.symbol !== QuickPanelReservedSymbol.MentionModels) {
-            openMentionPanelAt(cursorPosition - 1)
+          if (!quickPanel.isVisible || quickPanel.symbol !== QuickPanelReservedSymbol.MentionAssistants) {
+            openMentionAssistantsPanelAt(cursorPosition - 1)
           }
         }
       }
@@ -433,7 +433,7 @@ export const InputbarCore: FC<InputbarCoreProps> = ({
         const activeSymbol = quickPanel.symbol as QuickPanelReservedSymbol
         const triggerPosition = quickPanel.triggerInfo.position ?? -1
         const isTrackedSymbol =
-          activeSymbol === QuickPanelReservedSymbol.Root || activeSymbol === QuickPanelReservedSymbol.MentionModels
+          activeSymbol === QuickPanelReservedSymbol.Root || activeSymbol === QuickPanelReservedSymbol.MentionAssistants
 
         if (isTrackedSymbol && triggerPosition >= 0) {
           // Check if cursor is before the trigger position (user deleted the symbol)
@@ -442,7 +442,8 @@ export const InputbarCore: FC<InputbarCoreProps> = ({
           } else {
             // Check if the trigger symbol still exists at the expected position
             const triggerChar = newText[triggerPosition]
-            if (triggerChar !== activeSymbol) {
+            const expectedSymbol = activeSymbol === QuickPanelReservedSymbol.MentionAssistants ? '@' : activeSymbol
+            if (triggerChar !== expectedSymbol) {
               quickPanel.close('delete-symbol')
             }
           }
@@ -725,7 +726,7 @@ const Container = styled.div`
   position: relative;
   z-index: 2;
   padding: 0 18px 18px 18px;
-  [navbar-position='top'] & {
+  [navbar-position="top"] & {
     padding: 0 18px 10px 18px;
   }
 `
@@ -742,7 +743,7 @@ const InputBarContainer = styled.div`
     border: 2px dashed #2ecc71;
 
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       left: 0;

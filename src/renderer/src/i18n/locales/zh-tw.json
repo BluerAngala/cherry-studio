@@ -499,6 +499,9 @@
   },
   "assistants": {
     "abbr": "助手",
+    "add": {
+      "title": "[to be translated]:Add Assistant"
+    },
     "clear": {
       "content": "清空話題會刪除助手下所有主題和檔案，確定要繼續嗎？",
       "title": "清空話題"
@@ -522,6 +525,14 @@
     "list": {
       "showByList": "列表顯示",
       "showByTags": "標籤顯示"
+    },
+    "mention": {
+      "clear": {
+        "assistants": "[to be translated]:Clear selected assistants"
+      },
+      "select": {
+        "title": "[to be translated]:Select Assistant"
+      }
     },
     "presets": {
       "add": {

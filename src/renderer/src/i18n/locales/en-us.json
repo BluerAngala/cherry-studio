@@ -499,6 +499,9 @@
   },
   "assistants": {
     "abbr": "Assistants",
+    "add": {
+      "title": "Add Assistant"
+    },
     "clear": {
       "content": "Clearing the topic will delete all topics and files in the assistant. Are you sure you want to continue?",
       "title": "Clear topics"
@@ -522,6 +525,14 @@
     "list": {
       "showByList": "List View",
       "showByTags": "Tag View"
+    },
+    "mention": {
+      "clear": {
+        "assistants": "Clear selected assistants"
+      },
+      "select": {
+        "title": "Select Assistant"
+      }
     },
     "presets": {
       "add": {

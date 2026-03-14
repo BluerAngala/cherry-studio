@@ -5,34 +5,32 @@ import MentionModelsButton from './components/MentionModelsButton'
 import MentionModelsQuickPanelManager from './components/MentionModelsQuickPanelManager'
 
 /**
- * Mention Models Tool
+ * Mention Assistants Tool (formerly Mention Models Tool)
  *
- * Allows users to mention multiple AI models in their messages.
- * Uses @ trigger to open model selection panel.
+ * Allows users to mention multiple AI assistants in their messages.
+ * Uses @ trigger to open assistant selection panel.
  */
 const mentionModelsTool = defineTool({
   key: 'mention_models',
-  label: (t) => t('assistants.presets.edit.model.select.title'),
+  label: (t) => t('assistants.mention.select.title'),
 
   visibleInScopes: [TopicType.Chat, 'mini-window'],
   dependencies: {
-    state: ['mentionedModels', 'files', 'couldMentionNotVisionModel'] as const,
-    actions: ['setMentionedModels', 'onTextChange'] as const
+    state: ['mentionedAssistants'] as const,
+    actions: ['setMentionedAssistants', 'onTextChange'] as const
   },
 
   render: function MentionModelsToolRender(context) {
     const { state, actions, quickPanel, quickPanelController } = context
-    const { mentionedModels, files, couldMentionNotVisionModel } = state
-    const { setMentionedModels, onTextChange } = actions
+    const { mentionedAssistants } = state
+    const { setMentionedAssistants, onTextChange } = actions
 
     return (
       <MentionModelsButton
         quickPanel={quickPanel}
         quickPanelController={quickPanelController}
-        mentionedModels={mentionedModels}
-        setMentionedModels={setMentionedModels}
-        couldMentionNotVisionModel={couldMentionNotVisionModel}
-        files={files}
+        mentionedAssistants={mentionedAssistants}
+        setMentionedAssistants={setMentionedAssistants}
         setText={onTextChange as React.Dispatch<React.SetStateAction<string>>}
       />
     )

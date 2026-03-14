@@ -1,55 +1,40 @@
-import ModelTagsWithLabel from '@renderer/components/ModelTagsWithLabel'
 import type { QuickPanelListItem } from '@renderer/components/QuickPanel'
 import { QuickPanelReservedSymbol } from '@renderer/components/QuickPanel'
-import { getModelLogo, isEmbeddingModel, isRerankModel, isVisionModel } from '@renderer/config/models'
-import db from '@renderer/databases'
-import { useProviders } from '@renderer/hooks/useProvider'
+import { useAssistants } from '@renderer/hooks/useAssistant'
 import type { ToolQuickPanelApi, ToolQuickPanelController } from '@renderer/pages/home/Inputbar/types'
-import { getModelUniqId } from '@renderer/services/ModelService'
-import type { FileMetadata, Model } from '@renderer/types'
-import { FILE_TYPE } from '@renderer/types'
-import { getFancyProviderName } from '@renderer/utils'
+import type { Assistant } from '@renderer/types'
 import { Avatar } from 'antd'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { first, sortBy } from 'lodash'
 import { AtSign, CircleX, Plus } from 'lucide-react'
-import type React from 'react'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import styled from 'styled-components'
 
-export type MentionTriggerInfo = { type: 'input' | 'button'; position?: number; originalText?: string }
+export type MentionTriggerInfo = {
+  type: 'input' | 'button'
+  position?: number
+  originalText?: string
+}
 
 interface Params {
   quickPanel: ToolQuickPanelApi
   quickPanelController: ToolQuickPanelController
-  mentionedModels: Model[]
-  setMentionedModels: React.Dispatch<React.SetStateAction<Model[]>>
-  couldMentionNotVisionModel: boolean
-  files: FileMetadata[]
+  mentionedAssistants: Assistant[]
+  setMentionedAssistants: React.Dispatch<React.SetStateAction<Assistant[]>>
   setText: React.Dispatch<React.SetStateAction<string>>
 }
 
 export const useMentionModelsPanel = (params: Params, role: 'button' | 'manager' = 'button') => {
-  const {
-    quickPanel,
-    quickPanelController,
-    mentionedModels,
-    setMentionedModels,
-    couldMentionNotVisionModel,
-    files,
-    setText
-  } = params
+  const { quickPanel, quickPanelController, mentionedAssistants, setMentionedAssistants, setText } = params
   const { registerRootMenu, registerTrigger } = quickPanel
-  const { open, close, updateList, isVisible, symbol } = quickPanelController
-  const { providers } = useProviders()
+  const { open, updateList, isVisible, symbol } = quickPanelController
+  const { assistants } = useAssistants()
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const hasModelActionRef = useRef(false)
+  const hasAssistantActionRef = useRef(false)
   const triggerInfoRef = useRef<MentionTriggerInfo | undefined>(undefined)
-  const filesRef = useRef(files)
 
   const removeAtSymbolAndText = useCallback(
     (currentText: string, caretPosition: number, searchText?: string, fallbackPosition?: number) => {
@@ -98,136 +83,96 @@ export const useMentionModelsPanel = (params: Params, role: 'button' | 'manager'
     []
   )
 
-  const onMentionModel = useCallback(
-    (model: Model) => {
-      const allowNonVision = !files.some((file) => file.type === FILE_TYPE.IMAGE)
-      if (isVisionModel(model) || allowNonVision) {
-        setMentionedModels((prev) => {
-          const modelId = getModelUniqId(model)
-          const exists = prev.some((m) => getModelUniqId(m) === modelId)
-          return exists ? prev.filter((m) => getModelUniqId(m) !== modelId) : [...prev, model]
-        })
-        hasModelActionRef.current = true
-      }
+  const onMentionAssistant = useCallback(
+    (assistant: Assistant) => {
+      setMentionedAssistants((prev) => {
+        const exists = prev.some((a) => a.id === assistant.id)
+        return exists ? prev.filter((a) => a.id !== assistant.id) : [...prev, assistant]
+      })
+      hasAssistantActionRef.current = true
     },
-    [files, setMentionedModels]
+    [setMentionedAssistants]
   )
 
-  const onClearMentionModels = useCallback(() => {
-    setMentionedModels([])
-  }, [setMentionedModels])
+  const onClearMentionAssistants = useCallback(() => {
+    setMentionedAssistants([])
+  }, [setMentionedAssistants])
 
-  const pinnedModels = useLiveQuery(
-    async () => {
-      const setting = await db.settings.get('pinned:models')
-      return setting?.value || []
-    },
-    [],
-    []
-  )
+  // Create a stable key from assistants to avoid infinite loops
+  const assistantsKey = useMemo(() => {
+    if (!assistants || assistants.length === 0) return 'empty'
+    return assistants.map((a) => a.id).join(',')
+  }, [assistants])
 
-  const modelItems = useMemo(() => {
+  const assistantItems = useMemo(() => {
     const items: QuickPanelListItem[] = []
 
-    if (pinnedModels.length > 0) {
-      const pinnedItems = providers.flatMap((provider) =>
-        provider.models
-          .filter((model) => !isEmbeddingModel(model) && !isRerankModel(model))
-          .filter((model) => pinnedModels.includes(getModelUniqId(model)))
-          .filter((model) => couldMentionNotVisionModel || (!couldMentionNotVisionModel && isVisionModel(model)))
-          .map((model) => ({
-            label: (
-              <>
-                <ProviderName>{getFancyProviderName(provider)}</ProviderName>
-                <span style={{ opacity: 0.8 }}> | {model.name}</span>
-              </>
-            ),
-            description: <ModelTagsWithLabel model={model} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
-            icon: (
-              <Avatar src={getModelLogo(model)} size={20}>
-                {first(model.name)}
-              </Avatar>
-            ),
-            filterText: getFancyProviderName(provider) + model.name,
-            action: () => onMentionModel(model),
-            isSelected: mentionedModels.some((selected) => getModelUniqId(selected) === getModelUniqId(model))
-          }))
-      )
+    if (assistants && assistants.length > 0) {
+      const sortedAssistants = sortBy(assistants, ['name'])
 
-      if (pinnedItems.length > 0) {
-        items.push(...sortBy(pinnedItems, ['label']))
-      }
+      sortedAssistants.forEach((assistant) => {
+        items.push({
+          label: (
+            <>
+              <AssistantName>{assistant.name}</AssistantName>
+              {assistant.description && (
+                <span style={{ opacity: 0.6, fontSize: '12px', marginLeft: '8px' }}>| {assistant.description}</span>
+              )}
+            </>
+          ),
+          description: assistant.prompt ? (
+            <span style={{ opacity: 0.7, fontSize: '11px' }}>{assistant.prompt.slice(0, 100)}...</span>
+          ) : undefined,
+          icon: (
+            <Avatar size={24} style={{ backgroundColor: 'var(--color-primary)' }}>
+              {assistant.emoji || first(assistant.name)}
+            </Avatar>
+          ),
+          filterText: assistant.name + (assistant.description || ''),
+          action: () => onMentionAssistant(assistant),
+          isSelected: mentionedAssistants.some((selected) => selected.id === assistant.id)
+        })
+      })
     }
 
-    providers.forEach((provider) => {
-      const providerModels = sortBy(
-        provider.models
-          .filter((model) => !isEmbeddingModel(model) && !isRerankModel(model))
-          .filter((model) => !pinnedModels.includes(getModelUniqId(model)))
-          .filter((model) => couldMentionNotVisionModel || (!couldMentionNotVisionModel && isVisionModel(model))),
-        ['group', 'name']
-      )
-
-      const providerItems = providerModels.map((model) => ({
-        label: (
-          <>
-            <ProviderName>{getFancyProviderName(provider)}</ProviderName>
-            <span style={{ opacity: 0.8 }}> | {model.name}</span>
-          </>
-        ),
-        description: <ModelTagsWithLabel model={model} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
-        icon: (
-          <Avatar src={getModelLogo(model)} size={20}>
-            {first(model.name)}
-          </Avatar>
-        ),
-        filterText: getFancyProviderName(provider) + model.name,
-        action: () => onMentionModel(model),
-        isSelected: mentionedModels.some((selected) => getModelUniqId(selected) === getModelUniqId(model))
-      }))
-
-      if (providerItems.length > 0) {
-        items.push(...providerItems)
-      }
-    })
-
     items.push({
-      label: t('settings.models.add.add_model') + '...',
+      label: t('assistants.add.title') + '...',
       icon: <Plus />,
-      action: () => navigate('/settings/provider'),
+      action: () => navigate('/assistants'),
       isSelected: false
     })
 
-    items.unshift({
-      label: t('settings.input.clear.all'),
-      description: t('settings.input.clear.models'),
-      icon: <CircleX />,
-      alwaysVisible: true,
-      isSelected: false,
-      action: ({ context }) => {
-        onClearMentionModels()
+    if (mentionedAssistants.length > 0) {
+      items.unshift({
+        label: t('settings.input.clear.all'),
+        description: t('assistants.mention.clear.assistants'),
+        icon: <CircleX />,
+        alwaysVisible: true,
+        isSelected: false,
+        action: ({ context }) => {
+          onClearMentionAssistants()
 
-        if (triggerInfoRef.current?.type === 'input') {
-          setText((currentText) => {
-            const textArea = document.querySelector('.inputbar textarea') as HTMLTextAreaElement | null
-            const caret = textArea ? (textArea.selectionStart ?? currentText.length) : currentText.length
-            return removeAtSymbolAndText(currentText, caret, undefined, triggerInfoRef.current?.position)
-          })
+          if (triggerInfoRef.current?.type === 'input') {
+            setText((currentText) => {
+              const textArea = document.querySelector('.inputbar textarea') as HTMLTextAreaElement | null
+              const caret = textArea ? (textArea.selectionStart ?? currentText.length) : currentText.length
+              return removeAtSymbolAndText(currentText, caret, undefined, triggerInfoRef.current?.position)
+            })
+          }
+
+          context.close()
         }
-
-        context.close()
-      }
-    })
+      })
+    }
 
     return items
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    couldMentionNotVisionModel,
-    mentionedModels,
+    assistantsKey,
+    mentionedAssistants,
     navigate,
-    onClearMentionModels,
-    onMentionModel,
-    pinnedModels,
-    providers,
+    onClearMentionAssistants,
+    onMentionAssistant,
     removeAtSymbolAndText,
     setText,
     t
@@ -235,74 +180,55 @@ export const useMentionModelsPanel = (params: Params, role: 'button' | 'manager'
 
   const openQuickPanel = useCallback(
     (triggerInfo?: MentionTriggerInfo) => {
-      hasModelActionRef.current = false
+      hasAssistantActionRef.current = false
       triggerInfoRef.current = triggerInfo
 
       open({
-        title: t('assistants.presets.edit.model.select.title'),
-        list: modelItems,
-        symbol: QuickPanelReservedSymbol.MentionModels,
-        multiple: true,
-        triggerInfo: triggerInfo || { type: 'button' },
-        afterAction({ item }) {
-          item.isSelected = !item.isSelected
-        },
-        onClose({ action, searchText, context }) {
-          if (action === 'esc') {
-            const trigger = context?.triggerInfo ?? triggerInfoRef.current
-            if (hasModelActionRef.current && trigger?.type === 'input' && trigger?.position !== undefined) {
-              setText((currentText) => {
-                const textArea = document.querySelector('.inputbar textarea') as HTMLTextAreaElement | null
-                const caret = textArea ? (textArea.selectionStart ?? currentText.length) : currentText.length
-                return removeAtSymbolAndText(currentText, caret, searchText || '', trigger?.position!)
-              })
-            }
+        title: t('assistants.mention.select.title'),
+        list: assistantItems,
+        symbol: QuickPanelReservedSymbol.MentionAssistants,
+        onClose: (context) => {
+          if (triggerInfo?.type === 'input' && !hasAssistantActionRef.current) {
+            const textArea = document.querySelector('.inputbar textarea') as HTMLTextAreaElement | null
+            const caret = textArea ? (textArea.selectionStart ?? 0) : 0
+            const newText = removeAtSymbolAndText(
+              context.searchText || '',
+              caret,
+              context.searchText || '',
+              triggerInfo.position
+            )
+            setText(newText)
           }
-          triggerInfoRef.current = undefined
         }
       })
     },
-    [modelItems, open, removeAtSymbolAndText, setText, t]
+    [assistantItems, open, removeAtSymbolAndText, setText, t]
   )
 
   const handleOpenQuickPanel = useCallback(() => {
-    if (isVisible && symbol === QuickPanelReservedSymbol.MentionModels) {
-      close()
-    } else {
-      openQuickPanel({ type: 'button' })
-    }
-  }, [close, isVisible, openQuickPanel, symbol])
+    openQuickPanel({ type: 'button' })
+  }, [openQuickPanel])
 
+  // Update list when items change while panel is open
   useEffect(() => {
-    if (role !== 'manager') return
-    if (filesRef.current !== files) {
-      if (isVisible && symbol === QuickPanelReservedSymbol.MentionModels) {
-        close()
-      }
-      filesRef.current = files
+    if (isVisible && symbol === QuickPanelReservedSymbol.MentionAssistants) {
+      updateList(assistantItems)
     }
-  }, [close, files, isVisible, role, symbol])
-
-  useEffect(() => {
-    if (role !== 'manager') return
-    if (isVisible && symbol === QuickPanelReservedSymbol.MentionModels) {
-      updateList(modelItems)
-    }
-  }, [isVisible, modelItems, role, symbol, updateList])
+  }, [isVisible, assistantItems, role, symbol, updateList])
 
   useEffect(() => {
     if (role !== 'manager') return
     const disposeRootMenu = registerRootMenu([
       {
-        label: t('assistants.presets.edit.model.select.title'),
+        label: t('assistants.mention.select.title'),
         description: '',
-        icon: <AtSign />,
+        icon: React.createElement(AtSign),
         isMenu: true,
         action: () => openQuickPanel({ type: 'button' })
       }
     ])
 
-    const disposeTrigger = registerTrigger(QuickPanelReservedSymbol.MentionModels, (payload) => {
+    const disposeTrigger = registerTrigger(QuickPanelReservedSymbol.MentionAssistants, (payload) => {
       const trigger = (payload || {}) as MentionTriggerInfo
       openQuickPanel(trigger)
     })
@@ -314,11 +240,10 @@ export const useMentionModelsPanel = (params: Params, role: 'button' | 'manager'
   }, [openQuickPanel, registerRootMenu, registerTrigger, role, t])
 
   return {
-    handleOpenQuickPanel,
-    openQuickPanel
+    handleOpenQuickPanel
   }
 }
 
-const ProviderName = styled.span`
+const AssistantName = styled.span`
   font-weight: 500;
 `

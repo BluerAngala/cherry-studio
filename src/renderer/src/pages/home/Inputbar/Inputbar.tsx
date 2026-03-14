@@ -52,6 +52,7 @@ import { useTranslation } from 'react-i18next'
 import { InputbarCore } from './components/InputbarCore'
 import InputbarTools from './InputbarTools'
 import KnowledgeBaseInput from './KnowledgeBaseInput'
+import MentionAssistantsInput from './MentionAssistantsInput'
 import MentionModelsInput from './MentionModelsInput'
 import { getInputbarConfig } from './registry'
 import TokenCount from './TokenCount'
@@ -104,6 +105,7 @@ const Inputbar: FC<Props> = ({ assistant: initialAssistant, setActiveTopic, topi
     () => ({
       files: [] as FileMetadata[],
       mentionedModels: initialMentionedModels,
+      mentionedAssistants: [],
       selectedKnowledgeBases: initialAssistant.knowledge_bases ?? [],
       isExpanded: false,
       couldAddImageFile: false,
@@ -137,8 +139,8 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
   const scope = topic.type ?? TopicType.Chat
   const config = getInputbarConfig(scope)
 
-  const { files, mentionedModels, selectedKnowledgeBases } = useInputbarToolsState()
-  const { setFiles, setMentionedModels, setSelectedKnowledgeBases } = useInputbarToolsDispatch()
+  const { files, mentionedModels, mentionedAssistants, selectedKnowledgeBases } = useInputbarToolsState()
+  const { setFiles, setMentionedModels, setMentionedAssistants, setSelectedKnowledgeBases } = useInputbarToolsDispatch()
   const { setCouldAddImageFile } = useInputbarToolsInternalDispatch()
 
   const { text, setText } = useInputText({
@@ -224,7 +226,9 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
   }, [assistant.id])
 
   const placeholderText = enableQuickPanelTriggers
-    ? t('chat.input.placeholder', { key: getSendMessageShortcutLabel(sendMessageShortcut) })
+    ? t('chat.input.placeholder', {
+        key: getSendMessageShortcutLabel(sendMessageShortcut)
+      })
     : t('chat.input.placeholder_without_triggers', {
         key: getSendMessageShortcutLabel(sendMessageShortcut),
         defaultValue: t('chat.input.placeholder', {
@@ -243,12 +247,19 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
       { topicId: topic.id, name: 'sendMessage', inputs: text },
       mentionedModels.length > 0 ? mentionedModels : [assistant.model]
     )
-    EventEmitter.emit(EVENT_NAMES.SEND_MESSAGE, { topicId: topic.id, traceId: parent?.spanContext().traceId })
+    EventEmitter.emit(EVENT_NAMES.SEND_MESSAGE, {
+      topicId: topic.id,
+      traceId: parent?.spanContext().traceId
+    })
 
     try {
       const uploadedFiles = await FileManager.uploadFiles(files)
 
-      const baseUserMessage: MessageInputBaseParams = { assistant, topic, content: text }
+      const baseUserMessage: MessageInputBaseParams = {
+        assistant,
+        topic,
+        content: text
+      }
       if (uploadedFiles) {
         baseUserMessage.files = uploadedFiles
       }
@@ -343,6 +354,13 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
     [mentionedModels, setMentionedModels]
   )
 
+  const handleRemoveAssistant = useCallback(
+    (assistantToRemove: Assistant) => {
+      setMentionedAssistants(mentionedAssistants.filter((current) => current.id !== assistantToRemove.id))
+    },
+    [mentionedAssistants, setMentionedAssistants]
+  )
+
   const handleRemoveKnowledgeBase = useCallback(
     (knowledgeBase: KnowledgeBase) => {
       const nextKnowledgeBases = assistant.knowledge_bases?.filter((kb) => kb.id !== knowledgeBase.id)
@@ -388,11 +406,17 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
   })
 
   useEffect(() => {
-    const _setEstimateTokenCount = debounce(setEstimateTokenCount, 100, { leading: false, trailing: true })
+    const _setEstimateTokenCount = debounce(setEstimateTokenCount, 100, {
+      leading: false,
+      trailing: true
+    })
     const unsubscribes = [
       EventEmitter.on(EVENT_NAMES.ESTIMATED_TOKEN_COUNT, ({ tokensCount, contextCount }) => {
         _setEstimateTokenCount(tokensCount)
-        setContextCount({ current: contextCount.current, max: contextCount.max })
+        setContextCount({
+          current: contextCount.current,
+          max: contextCount.max
+        })
       }),
       ...[EventEmitter.on(EVENT_NAMES.ADD_NEW_TOPIC, addNewTopic)]
     ]
@@ -469,6 +493,10 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
           selectedKnowledgeBases={selectedKnowledgeBases}
           onRemoveKnowledgeBase={handleRemoveKnowledgeBase}
         />
+      )}
+
+      {mentionedAssistants.length > 0 && (
+        <MentionAssistantsInput selectedAssistants={mentionedAssistants} onRemoveAssistant={handleRemoveAssistant} />
       )}
 
       {mentionedModels.length > 0 && (

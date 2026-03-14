@@ -300,7 +300,7 @@ export const initialState: SettingsState = {
     themeLight: 'auto',
     themeDark: 'auto',
     highlightActiveLine: false,
-    foldGutter: false,
+    foldGutter: true,
     autocompletion: true,
     keymap: false
   },
@@ -313,10 +313,10 @@ export const initialState: SettingsState = {
     themeLight: 'auto',
     themeDark: 'auto'
   },
-  codeShowLineNumbers: false,
+  codeShowLineNumbers: true,
   codeCollapsible: false,
   codeWrappable: false,
-  codeImageTools: false,
+  codeImageTools: true,
   codeFancyBlock: true,
   mathEngine: 'KaTeX',
   mathEnableSingleDollar: true,
@@ -383,7 +383,7 @@ export const initialState: SettingsState = {
   enableDataCollection: false,
   enableSpellCheck: true,
   spellCheckLanguages: ['zh-CN', 'en-US'],
-  enableQuickPanelTriggers: false,
+  enableQuickPanelTriggers: true,
   // 消息操作确认设置
   confirmDeleteMessage: true,
   confirmRegenerateMessage: true,
