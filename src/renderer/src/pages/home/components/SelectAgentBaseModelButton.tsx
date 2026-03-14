@@ -4,8 +4,6 @@ import { agentModelFilter } from '@renderer/config/models'
 import { useApiModel } from '@renderer/hooks/agents/useModel'
 import { getProviderNameById } from '@renderer/services/ProviderService'
 import type { AgentBaseWithId, ApiModel } from '@renderer/types'
-import { isAgentSessionEntity } from '@renderer/types'
-import { isAgentEntity } from '@renderer/types'
 import { getModelFilterByAgentType } from '@renderer/utils/agentSession'
 import { apiModelAdapter } from '@renderer/utils/model'
 import type { ButtonProps } from 'antd'
@@ -49,16 +47,20 @@ const SelectAgentBaseModelButton: FC<Props> = ({
   const { t } = useTranslation()
   const model = useApiModel({ id: agent?.model })
 
-  const apiFilter = isAgentEntity(agent)
-    ? getModelFilterByAgentType(agent.type)
-    : isAgentSessionEntity(agent)
-      ? getModelFilterByAgentType(agent.agent_type)
+  const apiFilter = (agent as any).type
+    ? getModelFilterByAgentType((agent as any).type)
+    : (agent as any).agent_type
+      ? getModelFilterByAgentType((agent as any).agent_type)
       : undefined
 
   if (!agent) return null
 
   const onSelectModel = async () => {
-    const selectedModel = await SelectApiModelPopup.show({ model, apiFilter: apiFilter, modelFilter: agentModelFilter })
+    const selectedModel = await SelectApiModelPopup.show({
+      model,
+      apiFilter: apiFilter || {}, // Pass empty object if undefined to satisfy types if needed, or just apiFilter
+      modelFilter: agentModelFilter
+    })
     if (selectedModel && selectedModel.id !== agent.model) {
       onSelect(selectedModel)
     }
@@ -85,7 +87,7 @@ const SelectAgentBaseModelButton: FC<Props> = ({
       <div className={containerClassName || 'flex w-full items-center gap-1.5'}>
         <div className="flex flex-1 items-center gap-1.5 overflow-x-hidden">
           <ModelAvatar model={model ? apiModelAdapter(model) : undefined} size={avatarSize} />
-          <span className="truncate text-[var(--color-text)]">
+          <span className="truncate text-(--color-text)">
             {model ? model.name : t('button.select_model')} {providerName ? ' | ' + providerName : ''}
           </span>
         </div>

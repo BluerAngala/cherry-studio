@@ -48,11 +48,6 @@ export default defineConfig({
     }
   },
   preload: {
-    plugins: [
-      react({
-        tsDecorators: true
-      })
-    ],
     resolve: {
       alias: {
         '@shared': resolve('packages/shared'),

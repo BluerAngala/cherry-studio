@@ -20,9 +20,20 @@ export const useApiModels = (filter?: ApiModelsFilter) => {
     while (offset < total) {
       const pageFilter = { ...finalFilter, limit, offset }
       const res = await client.getModels(pageFilter)
-      allModels.push(...(res.data || []))
-      total = res.total ?? 0
+      const newData = res.data || []
+      allModels.push(...newData)
+
+      // If res.total is not provided, we assume we've reached the end if the page is not full
+      if (res.total !== undefined) {
+        total = res.total
+      } else {
+        total = newData.length < limit ? allModels.length : Infinity
+      }
+
       offset += limit
+
+      // Safety break to prevent infinite loops
+      if (newData.length === 0 || offset >= 1000) break
     }
     return { data: allModels, total }
   }, [client, finalFilter])

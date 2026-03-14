@@ -1,4 +1,3 @@
-import ClaudeAvatar from '@renderer/assets/images/models/claude.png'
 import type { AgentBase, AgentType } from '@renderer/types'
 import type { PermissionModeCard } from '@renderer/types/agent'
 
@@ -8,14 +7,14 @@ const DEFAULT_AGENT_CONFIG: Omit<AgentBase, 'model'> = {
 } as const
 
 // no default config for now.
-export const DEFAULT_CLAUDE_CODE_CONFIG: Omit<AgentBase, 'model'> = {
+export const DEFAULT_OPENCODE_CONFIG: Omit<AgentBase, 'model'> = {
   ...DEFAULT_AGENT_CONFIG
 } as const
 
 export const getAgentTypeAvatar = (type: AgentType): string => {
   switch (type) {
-    case 'claude-code':
-      return ClaudeAvatar
+    case 'opencode':
+      return '' // Add OpenCode avatar here if needed
     default:
       return ''
   }

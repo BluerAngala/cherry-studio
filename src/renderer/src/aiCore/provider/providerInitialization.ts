@@ -10,14 +10,6 @@ const logger = loggerService.withContext('ProviderConfigs')
  */
 export const NEW_PROVIDER_CONFIGS: ProviderConfig[] = [
   {
-    id: 'openrouter',
-    name: 'OpenRouter',
-    import: () => import('@openrouter/ai-sdk-provider'),
-    creatorFunctionName: 'createOpenRouter',
-    supportsImageGeneration: true,
-    aliases: ['openrouter']
-  },
-  {
     id: 'google-vertex',
     name: 'Google Vertex AI',
     import: () => import('@ai-sdk/google-vertex/edge'),

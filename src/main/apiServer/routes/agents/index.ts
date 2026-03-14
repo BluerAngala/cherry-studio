@@ -30,7 +30,7 @@ const agentsRouter = express.Router()
  *
  *     AgentType:
  *       type: string
- *       enum: [claude-code]
+ *       enum: [opencode]
  *       description: Type of agent
  *
  *     AgentConfiguration:

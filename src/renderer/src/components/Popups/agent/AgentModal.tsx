@@ -6,6 +6,7 @@ import { permissionModeCards } from '@renderer/config/agent'
 import { isWin } from '@renderer/config/constant'
 import { useAgents } from '@renderer/hooks/agents/useAgents'
 import { useUpdateAgent } from '@renderer/hooks/agents/useUpdateAgent'
+import { useDefaultModel } from '@renderer/hooks/useAssistant'
 import SelectAgentBaseModelButton from '@renderer/pages/home/components/SelectAgentBaseModelButton'
 import type {
   AddAgentForm,
@@ -30,12 +31,12 @@ const logger = loggerService.withContext('AddAgentPopup')
 
 type AgentWithTools = AgentEntity & { tools?: Tool[] }
 
-const buildAgentForm = (existing?: AgentWithTools): BaseAgentForm => ({
-  type: existing?.type ?? 'claude-code',
+const buildAgentForm = (existing?: AgentWithTools, defaultModelId?: string): BaseAgentForm => ({
+  type: existing?.type ?? 'opencode',
   name: existing?.name ?? 'Agent',
   description: existing?.description,
   instructions: existing?.instructions,
-  model: existing?.model ?? '',
+  model: existing?.model ?? defaultModelId ?? '',
   accessible_paths: existing?.accessible_paths ? [...existing.accessible_paths] : [],
   allowed_tools: existing?.allowed_tools ? [...existing.allowed_tools] : [],
   mcps: existing?.mcps ? [...existing.mcps] : [],
@@ -57,16 +58,20 @@ const PopupContainer: React.FC<Props> = ({ agent, afterSubmit, resolve }) => {
   const loadingRef = useRef(false)
   const { addAgent } = useAgents()
   const { updateAgent } = useUpdateAgent()
+  const { defaultModel } = useDefaultModel()
   const isEditing = (agent?: AgentWithTools) => agent !== undefined
 
-  const [form, setForm] = useState<BaseAgentForm>(() => buildAgentForm(agent))
-  const [gitBashPathInfo, setGitBashPathInfo] = useState<GitBashPathInfo>({ path: null, source: null })
+  const [form, setForm] = useState<BaseAgentForm>(() => buildAgentForm(agent, defaultModel?.id))
+  const [gitBashPathInfo, setGitBashPathInfo] = useState<GitBashPathInfo>({
+    path: null,
+    source: null
+  })
 
   useEffect(() => {
     if (open) {
-      setForm(buildAgentForm(agent))
+      setForm(buildAgentForm(agent, defaultModel?.id))
     }
-  }, [agent, open])
+  }, [agent, open, defaultModel?.id])
 
   const checkGitBash = useCallback(async () => {
     if (!isWin) return

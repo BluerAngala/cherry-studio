@@ -7,6 +7,7 @@
 
 // Service classes
 export { AgentService } from './AgentService'
+export { OpenCodeService } from './opencode'
 export { SessionMessageService } from './SessionMessageService'
 export { SessionService } from './SessionService'
 

@@ -14,13 +14,11 @@ export const extractAgentSessionIdFromTopicId = (topicId: string): string => {
   return topicId.replace(SESSION_TOPIC_PREFIX, '')
 }
 
-export const getModelFilterByAgentType = (type: AgentType): ApiModelsFilter => {
+export const getModelFilterByAgentType = (type: AgentType): ApiModelsFilter | undefined => {
   switch (type) {
-    case 'claude-code':
-      return {
-        providerType: 'anthropic'
-      }
+    case 'opencode':
+      return undefined // Allow all models for opencode
     default:
-      return {}
+      return undefined
   }
 }

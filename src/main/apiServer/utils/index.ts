@@ -23,23 +23,32 @@ export async function getAvailableProviders(): Promise<Provider[]> {
 
     // If cache is not available, get fresh data from Redux
     const providers = await reduxService.select('state.llm.providers')
+    logger.debug('Providers from Redux:', {
+      isArray: Array.isArray(providers),
+      length: Array.isArray(providers) ? providers.length : 0
+    })
+
     if (!providers || !Array.isArray(providers)) {
-      logger.warn('No providers found in Redux store')
+      logger.warn('No providers found in Redux store or not an array')
       return []
     }
 
-    // Support OpenAI and Anthropic type providers for API server
-    const supportedProviders = providers.filter(
-      (p: Provider) => p.enabled && (p.type === 'openai' || p.type === 'anthropic')
-    )
+    // Support all enabled providers for API server to enable "Universal Agent"
+    const supportedProviders = providers.filter((p: Provider) => {
+      const isEnabled = p.enabled === true
+      if (!isEnabled) {
+        logger.silly(`Skipping disabled provider: ${p.id}`)
+      }
+      return isEnabled
+    })
 
-    // Cache the filtered results
-    CacheService.set(PROVIDERS_CACHE_KEY, supportedProviders, PROVIDERS_CACHE_TTL)
-
-    logger.info('Providers filtered', {
+    logger.info('Providers filtered for API server', {
       supported: supportedProviders.length,
       total: providers.length
     })
+
+    // Cache the filtered results
+    CacheService.set(PROVIDERS_CACHE_KEY, supportedProviders, PROVIDERS_CACHE_TTL)
 
     return supportedProviders
   } catch (error: any) {
@@ -160,7 +169,7 @@ export async function validateModelId(model: string): Promise<{
         valid: false,
         error: {
           type: 'provider_not_found',
-          message: `Provider '${providerId}' not found, not enabled, or not supported. Only OpenAI providers are currently supported.`,
+          message: `Provider '${providerId}' not found, not enabled, or not configured correctly.`,
           code: 'provider_not_found'
         }
       }
@@ -262,15 +271,7 @@ export function validateProvider(provider: Provider): boolean {
       return false
     }
 
-    // Support OpenAI and Anthropic type providers
-    if (provider.type !== 'openai' && provider.type !== 'anthropic') {
-      logger.debug('Provider type not supported', {
-        providerId: provider.id,
-        providerType: provider.type
-      })
-      return false
-    }
-
+    // Support all provider types that have necessary configuration
     return true
   } catch (error: any) {
     logger.error('Error validating provider', {

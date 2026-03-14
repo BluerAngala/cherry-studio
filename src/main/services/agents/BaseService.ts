@@ -12,8 +12,6 @@ import path from 'path'
 import { DatabaseManager } from './database/DatabaseManager'
 import type { AgentModelField } from './errors'
 import { AgentModelValidationError } from './errors'
-import { builtinSlashCommands } from './services/claudecode/commands'
-import { builtinTools } from './services/claudecode/tools'
 
 const logger = loggerService.withContext('BaseService')
 const MCP_TOOL_ID_PREFIX = 'mcp__'
@@ -49,14 +47,12 @@ export abstract class BaseService {
   ]
 
   public async listMcpTools(
-    agentType: AgentType,
+    _agentType: AgentType,
     ids?: string[]
   ): Promise<{ tools: Tool[]; legacyIdMap: Map<string, string> }> {
     const tools: Tool[] = []
     const legacyIdMap = new Map<string, string>()
-    if (agentType === 'claude-code') {
-      tools.push(...builtinTools)
-    }
+    // OpenCode supports MCP tools by default or via configuration
     if (ids && ids.length > 0) {
       for (const id of ids) {
         try {
@@ -138,10 +134,8 @@ export abstract class BaseService {
     return Array.from(new Set(normalized))
   }
 
-  public async listSlashCommands(agentType: AgentType): Promise<SlashCommand[]> {
-    if (agentType === 'claude-code') {
-      return builtinSlashCommands
-    }
+  public async listSlashCommands(_agentType: AgentType): Promise<SlashCommand[]> {
+    // OpenCode has its own slash commands system
     return []
   }
 

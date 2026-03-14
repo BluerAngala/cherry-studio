@@ -216,7 +216,7 @@
       },
       "AgentType": {
         "type": "string",
-        "enum": ["claude-code"],
+        "enum": ["opencode"],
         "description": "Type of agent"
       },
       "AgentConfiguration": {

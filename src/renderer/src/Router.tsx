@@ -54,7 +54,7 @@ const Router: FC = () => {
 
   if (navbarPosition === 'left') {
     return (
-      <HashRouter>
+      <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Sidebar />
         {routes}
         <NavigationHandler />
@@ -63,7 +63,7 @@ const Router: FC = () => {
   }
 
   return (
-    <HashRouter>
+    <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <NavigationHandler />
       <TabsContainer>{routes}</TabsContainer>
     </HashRouter>

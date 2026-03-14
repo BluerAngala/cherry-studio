@@ -1,4 +1,3 @@
-import { loggerService } from '@logger'
 import type { SlashCommand, UpdateSessionResponse } from '@types'
 import {
   AgentBaseSchema,
@@ -14,10 +13,6 @@ import { and, count, desc, eq, type SQL } from 'drizzle-orm'
 import { BaseService } from '../BaseService'
 import { agentsTable, type InsertSessionRow, type SessionRow, sessionsTable } from '../database/schema'
 import type { AgentModelField } from '../errors'
-import { pluginService } from '../plugins/PluginService'
-import { builtinSlashCommands } from './claudecode/commands'
-
-const logger = loggerService.withContext('SessionService')
 
 export class SessionService extends BaseService {
   private static instance: SessionService | null = null
@@ -31,49 +26,10 @@ export class SessionService extends BaseService {
   }
 
   /**
-   * Override BaseService.listSlashCommands to merge builtin and plugin commands
+   * Override BaseService.listSlashCommands
    */
-  async listSlashCommands(agentType: string, agentId?: string): Promise<SlashCommand[]> {
-    const commands: SlashCommand[] = []
-
-    // Add builtin slash commands
-    if (agentType === 'claude-code') {
-      commands.push(...builtinSlashCommands)
-    }
-
-    // Add local command plugins from .claude/commands/
-    if (agentId) {
-      try {
-        const installedPlugins = await pluginService.listInstalled(agentId)
-
-        // Filter for command type plugins
-        const commandPlugins = installedPlugins.filter((p) => p.type === 'command')
-
-        // Convert plugin metadata to SlashCommand format
-        for (const plugin of commandPlugins) {
-          const commandName = plugin.metadata.filename.replace(/\.md$/i, '')
-          commands.push({
-            command: `/${commandName}`,
-            description: plugin.metadata.description
-          })
-        }
-
-        logger.info('Listed slash commands', {
-          agentType,
-          agentId,
-          builtinCount: builtinSlashCommands.length,
-          localCount: commandPlugins.length,
-          totalCount: commands.length
-        })
-      } catch (error) {
-        logger.warn('Failed to list local command plugins', {
-          agentId,
-          error: error instanceof Error ? error.message : String(error)
-        })
-      }
-    }
-
-    return commands
+  async listSlashCommands(_agentType: string, _agentId?: string): Promise<SlashCommand[]> {
+    return []
   }
 
   async createSession(
