@@ -50,7 +50,10 @@ export interface AiRequestContext<TParams = unknown, TResult = unknown> {
 
   // 递归深度控制（防止栈溢出）
   recursiveDepth: number // 当前递归深度
-  maxRecursiveDepth: number // 最大递归深度限制，默认 10
+  maxRecursiveDepth: number // 最大递归深度限制，默认 5（降低以防止死循环）
+
+  // 流控制
+  stopStream?: () => void // 停止流处理的回调函数
 
   mcpTools?: ToolSet
 

@@ -339,7 +339,7 @@ export const createPromptToolUsePlugin = (
       context.originalParams = transformedParams
       return transformedParams
     },
-    transformStream: (_, context) => () => {
+    transformStream: (params, context) => () => {
       let textBuffer = ''
       // let stepId = ''
 
@@ -360,9 +360,33 @@ export const createPromptToolUsePlugin = (
       }
 
       // 创建工具执行器、流事件管理器和标签提取器
-      const toolExecutor = new ToolExecutor()
+      // 使用最大重试次数 2 来防止死循环
+      const toolExecutor = new ToolExecutor(2)
       const streamEventManager = new StreamEventManager()
       const tagExtractor = new TagExtractor(TOOL_USE_TAG_CONFIG)
+
+      // 创建 AbortController 用于取消工具执行
+      const abortController = new AbortController()
+
+      // 监听原始 params 的 abortSignal，如果外部中止，也中止工具执行
+      const originalSignal = (params as any).abortSignal as AbortSignal | undefined
+      if (originalSignal) {
+        const handleExternalAbort = () => {
+          abortController.abort()
+        }
+        if (originalSignal.aborted) {
+          handleExternalAbort()
+        } else {
+          originalSignal.addEventListener('abort', handleExternalAbort, { once: true })
+        }
+      }
+
+      // 设置 context.stopStream 以便外部可以取消工具执行
+      const originalStopStream = context.stopStream
+      context.stopStream = () => {
+        abortController.abort()
+        originalStopStream?.()
+      }
 
       // 在context中初始化工具执行状态，避免递归调用时状态丢失
       if (!context.hasExecutedToolsInCurrentStep) {
@@ -433,7 +457,13 @@ export const createPromptToolUsePlugin = (
                 context.hasExecutedToolsInCurrentStep = true
 
                 // 执行工具调用（不需要手动发送 start-step，外部流已经处理）
-                const executedResults = await toolExecutor.executeTools(validToolUses, tools, controller)
+                // 传递 abortSignal 以支持取消
+                const executedResults = await toolExecutor.executeTools(
+                  validToolUses,
+                  tools,
+                  controller,
+                  abortController.signal
+                )
 
                 // 发送步骤完成事件，使用 tool-calls 作为 finishReason
                 streamEventManager.sendStepFinishEvent(controller, chunk, context, 'tool-calls')

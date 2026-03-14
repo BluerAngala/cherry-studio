@@ -32,6 +32,7 @@ export class AiSdkToChunkAdapter {
   private firstTokenTimestamp: number | null = null
   private hasTextContent = false
   private getSessionWasCleared?: () => boolean
+  private hasReceivedFinishEvent = false
 
   constructor(
     private onChunk: (chunk: Chunk) => void,
@@ -109,6 +110,7 @@ export class AiSdkToChunkAdapter {
     // Reset state at the start of stream
     this.isFirstChunk = true
     this.hasTextContent = false
+    this.hasReceivedFinishEvent = false
 
     try {
       while (true) {
@@ -126,6 +128,33 @@ export class AiSdkToChunkAdapter {
               })
             }
           }
+
+          // 后备机制：如果没有收到 finish 事件，手动发送完成事件
+          // 这修复了某些情况下 AI SDK 不发送 finish 事件导致消息状态一直显示"进行中"的问题
+          if (!this.hasReceivedFinishEvent && this.hasTextContent) {
+            logger.warn('Stream ended without finish event, sending fallback completion chunks')
+            this.emitThinkingCompleteIfNeeded(final)
+            this.onChunk({
+              type: ChunkType.TEXT_COMPLETE,
+              text: final.text || ''
+            })
+            this.onChunk({
+              type: ChunkType.BLOCK_COMPLETE,
+              response: {
+                text: final.text || '',
+                reasoning_content: final.reasoningContent || '',
+                usage: { completion_tokens: 0, prompt_tokens: 0, total_tokens: 0 }
+              }
+            })
+            this.onChunk({
+              type: ChunkType.LLM_RESPONSE_COMPLETE,
+              response: {
+                text: final.text || '',
+                reasoning_content: final.reasoningContent || ''
+              }
+            })
+          }
+
           break
         }
 
@@ -349,6 +378,9 @@ export class AiSdkToChunkAdapter {
       }
 
       case 'finish': {
+        // 标记已收到 finish 事件
+        this.hasReceivedFinishEvent = true
+
         // Check if session was cleared (e.g., /clear command) and no text was output
         const sessionCleared = this.getSessionWasCleared?.() ?? false
         if (sessionCleared && !this.hasTextContent) {
