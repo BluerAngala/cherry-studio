@@ -1,98 +1,98 @@
 [中文](docs/zh/guides/contributing.md) | [English](CONTRIBUTING.md)
 
-# Cherry Studio Contributor Guide
+# Cherry Law 贡献指南
 
-Welcome to the Cherry Studio contributor community! We are committed to making Cherry Studio a project that provides long-term value and hope to invite more developers to join us. Whether you are an experienced developer or a beginner just starting out, your contributions will help us better serve users and improve software quality.
+欢迎加入 Cherry Law 贡献者社区！我们致力于使 Cherry Law 成为法律业务场景中提供长期价值的项目，并希望能邀请更多的开发者加入我们。无论您是经验丰富的开发者，还是刚刚起步的新手，您的贡献都将帮助我们更好地服务法律行业用户并提高软件质量。
 
-## How to Contribute
+## 如何贡献
 
-Here are several ways you can participate:
+以下是您可以参与的几种方式：
 
-1.  **Contribute Code**: Help us develop new features or optimize existing code. Please ensure your code adheres to our coding standards and passes all tests.
+1.  **贡献代码**：帮助我们开发新功能或优化现有代码。请确保您的代码符合我们的编码标准并通所有测试。
 
-2.  **Fix Bugs**: If you find a bug, you are welcome to submit a fix. Please confirm the issue is resolved before submitting and include relevant tests.
+2.  **修复 Bug**：如果您发现 bug，欢迎提交修复。请在提交前确认问题已解决，并包含相关测试。
 
-3.  **Maintain Issues**: Help us manage issues on GitHub by assisting with tagging, classifying, and resolving problems.
+3.  **维护 Issue**：帮助我们在 GitHub 上管理 issue，协助标记、分类和解决问题。
 
-4.  **Product Design**: Participate in product design discussions to help us improve user experience and interface design.
+4.  **产品设计**：参与产品设计讨论，帮助我们改善用户体验和界面设计。
 
-5.  **Write Documentation**: Help us improve the user manual, API documentation, and developer guides.
+5.  **编写文档**：帮助我们完善用户手册、API 文档和开发者指南。
 
-6.  **Community Maintenance**: Participate in community discussions, help answer user questions, and promote community activity.
+6.  **社区维护**：参与社区讨论，帮助回答用户问题，促进社区活跃。
 
-7.  **Promote Usage**: Promote Cherry Studio through blogs, social media, and other channels to attract more users and developers.
+7.  **推广使用**：通过博客、社交媒体和其他渠道推广 Cherry Law，以吸引更多的用户和开发者。
 
-## Before You Start
+## 在您开始之前
 
-Please make sure you have read the [Code of Conduct](CODE_OF_CONDUCT.md) and the [LICENSE](LICENSE).
+请确保您已阅读[行为准则](CODE_OF_CONDUCT.md)和[许可证 (LICENSE)](LICENSE)。
 
-## Getting Started
+## 快速入门
 
-To help you get familiar with the codebase, we recommend tackling issues tagged with one or more of the following labels: [good-first-issue](https://github.com/CherryHQ/cherry-studio/labels/good%20first%20issue), [help-wanted](https://github.com/CherryHQ/cherry-studio/labels/help%20wanted), or [kind/bug](https://github.com/CherryHQ/cherry-studio/labels/kind%2Fbug). Any help is welcome.
+为了帮助您熟悉代码库，我们建议您先处理标有以下标签之一的 issue：[good-first-issue](https://github.com/CherryHQ/cherry-studio/labels/good%20first%20issue)、[help-wanted](https://github.com/CherryHQ/cherry-studio/labels/help%20wanted) 或 [kind/bug](https://github.com/CherryHQ/cherry-studio/labels/kind%2Fbug)。任何帮助都是欢迎的。
 
-### Testing
+### 测试
 
-Features without tests are considered non-existent. To ensure code is truly effective, relevant processes should be covered by unit tests and functional tests. Therefore, when considering contributions, please also consider testability. All tests can be run locally without dependency on CI. Please refer to the "Testing" section in the [Developer Guide](docs/zh/guides/development.md).
+没有测试的功能被视为不存在。为了确保代码真正有效，相关流程应由单元测试和功能测试覆盖。因此，在考虑贡献时，请同时考虑可测试性。所有测试都可以在本地运行，不依赖于 CI。请参阅[开发者指南](docs/zh/guides/development.md)中的“测试”部分。
 
-### Automated Testing for Pull Requests
+### 拉取请求的自动化测试
 
-Automated tests are triggered on pull requests (PRs) opened by members of the Cherry Studio organization, except for draft PRs. PRs opened by new contributors will initially be marked with the `needs-ok-to-test` label and will not be automatically tested. Once a Cherry Studio organization member adds `/ok-to-test` to the PR, the test pipeline will be created.
+自动化测试由 Cherry Studio 组织的成员开启的拉取请求 (PR) 触发，草稿 (draft) PR 除外。由新贡献者开启的 PR 最初将标记为 `needs-ok-to-test` 标签，并且不会自动测试。一旦 Cherry Studio 组织成员在 PR 中添加 `/ok-to-test`，测试流水线将被创建。
 
-### Consider Opening Your Pull Request as a Draft
+### 考虑将您的拉取请求开启为草稿
 
-Not all pull requests are ready for review when created. This might be because the author wants to start a discussion, they are not entirely sure if the changes are heading in the right direction, or the changes are not yet complete. Please consider creating these PRs as [draft pull requests](https://github.blog/2019-02-14-introducing-draft-pull-requests/). Draft PRs are skipped by CI, thus saving CI resources. This also means reviewers will not be automatically assigned, and the community will understand that this PR is not yet ready for review.
-Reviewers will be assigned after you mark the draft pull request as ready for review.
+并非所有拉取请求在创建时都已准备好进行评审。这可能是因为作者想要发起讨论，他们不完全确定更改的方向是否正确，或者更改尚未完成。请考虑将这些 PR 创建为[草稿拉取请求 (draft pull requests)](https://github.blog/2019-02-14-introducing-draft-pull-requests/)。草稿 PR 会被 CI 跳过，从而节省 CI 资源。这也意味着评审者不会被自动分配，社区会理解该 PR 尚未准备好进行评审。
+在您将草稿拉取请求标记为准备评审后，评审者将被分配。
 
-### Contributor Compliance with Project Terms
+### 贡献者对项目条款的遵守
 
-We require every contributor to certify that they have the right to legally contribute to our project. Contributors express this by consciously signing their commits, thereby indicating their compliance with the [LICENSE](LICENSE).
-A signed commit is one where the commit message includes the following:
+我们要求每位贡献者证明他们有权合法地为我们的项目做出贡献。贡献者通过自觉签署（sign off）其提交来表达这一点，从而表明他们遵守[许可证 (LICENSE)](LICENSE)。
+签署的提交是指提交消息包含以下内容：
 
-You can generate a signed commit using the following command [git commit --signoff](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff):
+您可以使用以下命令生成签署的提交 [git commit --signoff](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff)：
 
 ```
-git commit --signoff -m "Your commit message"
+git commit --signoff -m "您的提交消息"
 ```
 
-### Getting Code Reviewed/Merged
+### 获取代码评审/合并
 
-Maintainers are here to help you implement your use case within a reasonable timeframe. They will do their best to review your code and provide constructive feedback promptly. However, if you get stuck during the review process or feel your Pull Request is not receiving the attention it deserves, please contact us via comments in the Issue or through the [Community](README.md#-community).
+维护者会在这里帮助您在合理的时间范围内实现您的用例。他们会尽力及时评审您的代码并提供建设性的反馈。但是，如果您在评审过程中遇到阻碍，或者觉得您的拉取请求没有得到应有的关注，请通过 Issue 中的评论或通过[社区](README.md#-community)联系我们。
 
-### Participating in the Test Plan
+### 参与测试计划
 
-The Test Plan aims to provide users with a more stable application experience and faster iteration speed. For details, please refer to the [Test Plan](docs/en/guides/test-plan.md).
+测试计划旨在为用户提供更稳定的应用体验和更快的迭代速度。详情请参阅[测试计划](docs/zh/guides/test-plan.md)。
 
-### Other Suggestions
+### 其他建议
 
-- **Contact Developers**: Before submitting a PR, you can contact the developers first to discuss or get help.
+- **联系开发者**：在提交 PR 之前，您可以先联系开发者进行讨论或获取帮助。
 
-## Important Contribution Guidelines & Focus Areas
+## 重要贡献指南和重点领域
 
-Please review the following critical information before submitting your Pull Request:
+在提交拉取请求之前，请查看以下关键信息：
 
-### Temporary Restriction on Data-Changing Feature PRs 🚫
+### 数据变更功能 PR 的临时限制 🚫
 
-**Currently, we are NOT accepting feature Pull Requests that introduce changes to our Redux data models or IndexedDB schemas.**
+**目前，我们不接受引入 Redux 数据模型或 IndexedDB 模式更改的功能拉取请求。**
 
-Our core team is currently focused on significant architectural updates that involve these data structures. To ensure stability and focus during this period, contributions of this nature will be temporarily managed internally.
+我们的核心团队目前专注于涉及这些数据结构的重大架构更新。为了在此期间确保稳定性和重点，此类性质的贡献将暂时由内部管理。
 
-*   **PRs that require changes to Redux state shape or IndexedDB schemas will be closed.**
-*   **This restriction is temporary and will be lifted with the release of `v2.0.0`.** You can track the progress of `v2.0.0` and its related discussions on issue [#10162](https://github.com/CherryHQ/cherry-studio/pull/10162).
+*   **需要更改 Redux 状态形状或 IndexedDB 模式的 PR 将被关闭。**
+*   **此限制是暂时的，将随着 `v2.0.0` 的发布而解除。** 您可以在 issue [#10162](https://github.com/CherryHQ/cherry-studio/pull/10162) 跟踪 `v2.0.0` 及其相关讨论的进度。
 
-We highly encourage contributions for:
-*   Bug fixes 🐞
-*   Performance improvements 🚀
-*   Documentation updates 📚
-*   Features that **do not** alter Redux data models or IndexedDB schemas (e.g., UI enhancements, new components, minor refactors). ✨
+我们高度鼓励以下方面的贡献：
+*   Bug 修复 🐞
+*   性能改进 🚀
+*   文档更新 📚
+*   **不改变** Redux 数据模型或 IndexedDB 模式的功能（例如：UI 增强、新组件、细微重构）。 ✨
 
-We appreciate your understanding and continued support during this important development phase. Thank you!
+感谢您在这个重要的开发阶段的理解和持续支持。谢谢！
 
 
-## Contact Us
+## 联系我们
 
-If you have any questions or suggestions, feel free to contact us through the following ways:
+如果您有任何问题或建议，欢迎通过以下方式联系我们：
 
-- WeChat: kangfenmao
+- 微信：kangfenmao
 - [GitHub Issues](https://github.com/CherryHQ/cherry-studio/issues)
 
-Thank you for your support and contributions! We look forward to working with you to make Cherry Studio a better product.
+感谢您的支持和贡献！我们期待与您合作，让 Cherry Studio 成为更好的产品。

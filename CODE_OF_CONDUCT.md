@@ -1,29 +1,29 @@
-# Code of Conduct
+# 行为准则
 
-## Our Pledge
+## 我们的承诺
 
-In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
+为了营造一个开放且友好的环境，我们作为贡献者和维护者，承诺让每位参与者都能在我们的项目和社区中获得无骚扰的体验，无论其年龄、体型、残疾、族裔、性征、性别认同和表达、经验水平、受教育程度、社会经济地位、国籍、个人形象、种族、宗教或性取向。
 
-## Our Standards
+## 我们的标准
 
-Examples of behavior that contributes to creating a positive environment include:
+有助于创造积极环境的行为示例包括：
 
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints and experiences
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
-- Showing empathy towards other community members
+- 使用友好且具有包容性的语言
+- 尊重不同的观点和经验
+- 优雅地接受建设性的批评
+- 专注于对社区最有利的事情
+- 对其他社区成员表现出同理心
 
-Examples of unacceptable behavior by participants include:
+参与者不可接受的行为示例包括：
 
-- The use of sexualized language or imagery and unwelcome sexual attention or advances
-- Trolling, insulting/derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or electronic address, without explicit permission
-- Other conduct which could reasonably be considered inappropriate in a professional setting
+- 使用性化语言或图像，以及不受欢迎的性关注或挑逗
+- 恶意挑衅（Trolling）、侮辱/贬低性评论以及人身或政治攻击
+- 公开或私下的骚扰
+- 未经明确许可发布他人的隐私信息，如物理地址或电子邮箱
+- 其他在专业环境中可被合理视为不当的行为
 
-## Our Responsibilities
+## 我们的责任
 
-Project maintainers are responsible for clarifying the standards of acceptable behavior and are expected to take appropriate and fair corrective action in response to any instances of unacceptable behavior.
+项目维护者负责澄清可接受行为的标准，并应针对任何不当行为采取适当且公正的纠正措施。
 
-Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct, or to ban temporarily or permanently any contributor for other behaviors that they deem inappropriate, threatening, offensive, or harmful.
+项目维护者有权且有责任删除、编辑或拒绝与本行为准则不符的评论、提交（commits）、代码、百科编辑（wiki edits）、议题（issues）和其他贡献，或者对任何其认为不当、威胁、冒犯或有害的行为，暂时或永久封禁任何贡献者。

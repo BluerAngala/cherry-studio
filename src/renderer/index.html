@@ -5,7 +5,8 @@
     <meta name="viewport" content="initial-scale=1, width=device-width" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src blob: *; script-src 'self' 'unsafe-eval' 'unsafe-inline' *; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' *; font-src 'self' data: *; img-src 'self' data: file: * blob:; media-src 'self' file:; frame-src * file:" />
+      content="default-src 'self'; connect-src blob: *; script-src 'self' 'unsafe-eval' 'unsafe-inline' *; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' *; font-src 'self' data: *; img-src 'self' data: file: * blob:; media-src 'self' file:; frame-src * file:"
+    />
     <title>Cherry Studio</title>
 
     <style>
@@ -34,10 +35,10 @@
   <body>
     <div id="root"></div>
     <div id="spinner">
-      <img src="/src/assets/images/logo.png" />
+      <img src="/src/assets/images/logo.jpg" />
     </div>
     <script>
-      console.time('init')
+      console.time("init");
     </script>
     <script type="module" src="/src/init.ts"></script>
     <script type="module" src="/src/entryPoint.tsx"></script>

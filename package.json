@@ -1,9 +1,9 @@
 {
-  "name": "cherry-studio",
-  "version": "1.7.24",
+  "name": "cherry-law",
+  "version": "1.0.0",
   "private": true,
-  "description": "A powerful AI assistant for producer.",
-  "desktopName": "CherryStudio.desktop",
+  "description": "专业的法律业务场景 AI 助手，基于 Cherry Studio 二次开发。",
+  "desktopName": "CherryLaw.desktop",
   "main": "./out/main/index.js",
   "author": "support@cherry-ai.com",
   "homepage": "https://github.com/CherryHQ/cherry-studio",

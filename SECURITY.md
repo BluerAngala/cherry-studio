@@ -1,64 +1,64 @@
-# Security Policy
+# 安全政策
 
-## 📢 Reporting a Vulnerability
+## 📢 报告漏洞
 
-At Cherry Studio, we take security seriously and appreciate your efforts to responsibly disclose vulnerabilities. If you discover a security issue, please report it as soon as possible.
+在 Cherry Law，我们非常重视安全，并感谢您在负责任地披露漏洞方面所做的努力。如果您发现安全问题，请尽快报告。
 
-**Please do not create public issues for security-related reports.**
+**请不要为安全相关的报告创建公开议题 (Issue)。**
 
-- To report a security issue, please use the GitHub Security Advisories tab to "[Open a draft security advisory](https://github.com/CherryHQ/cherry-studio/security/advisories/new)".
-- Include a detailed description of the issue, steps to reproduce, potential impact, and any possible mitigations.
-- If applicable, please also attach proof-of-concept code or screenshots.
+- 要报告安全问题，请使用 GitHub 的“Security Advisories”选项卡来“[创建草稿安全公告](https://github.com/CherryHQ/cherry-studio/security/advisories/new)”。
+- 请包含问题的详细描述、复现步骤、潜在影响以及任何可能的缓解措施。
+- 如果适用，请附上概念验证 (PoC) 代码或截图。
 
-We will acknowledge your report within **72 hours** and provide a status update as we investigate.
-
----
-
-## 🔒 Supported Versions
-
-We aim to support the latest released version and one previous minor release.
-
-| Version         | Supported        |
-| --------------- | ---------------- |
-| Latest (`main`) | ✅ Supported     |
-| Previous minor  | ✅ Supported     |
-| Older versions  | ❌ Not supported |
-
-If you are using an unsupported version, we strongly recommend updating to the latest release to receive security fixes.
+我们将在 **72 小时**内确认您的报告，并在调查过程中提供状态更新。
 
 ---
 
-## 💡 Security Measures
+## 🔒 支持的版本
 
-Cherry Studio integrates several security best practices, including:
+我们的目标是支持最新的发布版本和一个之前的次要版本。
 
-- Strict dependency updates and regular vulnerability scanning.
-- TypeScript strict mode and linting to reduce potential injection or runtime issues.
-- Enforced code formatting and pre-commit hooks.
-- Internal security reviews before releases.
-- Dedicated MCP (Model Context Protocol) safeguards for model interactions and data privacy.
+| 版本           | 是否支持  |
+| -------------- | --------- |
+| 最新 (`main`)  | ✅ 支持   |
+| 上一个次要版本 | ✅ 支持   |
+| 更旧的版本     | ❌ 不支持 |
 
----
-
-## 🛡️ Disclosure Policy
-
-- We follow a **coordinated disclosure** approach.
-- We will not publicly disclose vulnerabilities until a fix has been developed and released.
-- Credit will be given to researchers who responsibly disclose vulnerabilities, if requested.
+如果您使用的是不受支持的版本，我们强烈建议您更新到最新版本以接收安全修复。
 
 ---
 
-## 🤝 Acknowledgements
+## 💡 安全措施
 
-We greatly appreciate contributions from the security community and strive to recognize all researchers who help keep Cherry Studio safe.
+Cherry Law 集成了多项安全最佳实践，包括：
+
+- 严格的依赖更新和定期的漏洞扫描。
+- TypeScript 严格模式和 lint 检查，以减少潜在的注入或运行时问题。
+- 强制代码格式化和预提交钩子 (pre-commit hooks)。
+- 发布前的内部安全评审。
+- 专用的 MCP (模型上下文协议) 安全防护，用于模型交互和数据隐私。
 
 ---
 
-## 🌟 Questions?
+## 🛡️ 披露政策
 
-For any security-related questions not involving vulnerabilities, please reach out to:  
-**security@cherry-ai.com**
+- 我们遵循**协调披露 (coordinated disclosure)**方法。
+- 在开发并发布修复程序之前，我们不会公开披露漏洞。
+- 如果研究人员要求，我们将对负责任地披露漏洞的研究人员给予表彰。
 
 ---
 
-Thank you for helping keep Cherry Studio and its users secure!
+## 🤝 致谢
+
+我们非常感谢安全社区的贡献，并努力表彰所有帮助保持 Cherry Law 安全的研究人员。
+
+---
+
+## 🌟 有疑问？
+
+对于任何不涉及漏洞的安全相关问题，请联系：  
+**security@cherry-law.com**
+
+---
+
+感谢您帮助保持 Cherry Law 及其用户的安全！

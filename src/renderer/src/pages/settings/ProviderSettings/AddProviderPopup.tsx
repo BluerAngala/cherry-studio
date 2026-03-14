@@ -129,7 +129,9 @@ const PopupContainer: React.FC<Props> = ({ provider, resolve }) => {
 
               if (provider?.id) {
                 if (logoData instanceof Blob && !(logoData instanceof File)) {
-                  const fileFromBlob = new File([logoData], 'logo.png', { type: logoData.type })
+                  const fileFromBlob = new File([logoData], 'logo.jpg', {
+                    type: logoData.type
+                  })
                   await ImageStorage.set(`provider-${provider.id}`, fileFromBlob)
                 } else {
                   await ImageStorage.set(`provider-${provider.id}`, logoData)

@@ -59,7 +59,10 @@ const PipRegistry: Registry[] = [
   { name: '清华大学', url: 'https://pypi.tuna.tsinghua.edu.cn/simple' },
   { name: '阿里云', url: 'http://mirrors.aliyun.com/pypi/simple/' },
   { name: '中国科学技术大学', url: 'https://mirrors.ustc.edu.cn/pypi/simple/' },
-  { name: '华为云', url: 'https://repo.huaweicloud.com/repository/pypi/simple/' },
+  {
+    name: '华为云',
+    url: 'https://repo.huaweicloud.com/repository/pypi/simple/'
+  },
   { name: '腾讯云', url: 'https://mirrors.cloud.tencent.com/pypi/simple/' }
 ]
 
@@ -556,7 +559,10 @@ const McpSettings: React.FC = () => {
                 options={[
                   { label: t('settings.mcp.stdio'), value: 'stdio' },
                   { label: t('settings.mcp.sse'), value: 'sse' },
-                  { label: t('settings.mcp.streamableHttp'), value: 'streamableHttp' }
+                  {
+                    label: t('settings.mcp.streamableHttp'),
+                    value: 'streamableHttp'
+                  }
                 ]}
               />
             </Form.Item>
@@ -708,7 +714,7 @@ const McpSettings: React.FC = () => {
               </Form.Item>
 
               <Form.Item name="logoUrl" label={t('settings.mcp.logoUrl', 'Logo URL')}>
-                <Input placeholder="https://example.com/logo.png" />
+                <Input placeholder="https://example.com/logo.jpg" />
               </Form.Item>
 
               <Form.Item name="tags" label={t('settings.mcp.tags', 'Tags')}>
@@ -763,8 +769,18 @@ const McpSettings: React.FC = () => {
 
   return (
     <Container>
-      <SettingContainer theme={theme} style={{ width: '100%', paddingTop: 55, backgroundColor: 'transparent' }}>
-        <SettingGroup style={{ marginBottom: 0, borderRadius: 'var(--list-item-border-radius)' }}>
+      <SettingContainer
+        theme={theme}
+        style={{
+          width: '100%',
+          paddingTop: 55,
+          backgroundColor: 'transparent'
+        }}>
+        <SettingGroup
+          style={{
+            marginBottom: 0,
+            borderRadius: 'var(--list-item-border-radius)'
+          }}>
           <SettingTitle>
             <Flex justify="space-between" align="center" gap={5} style={{ marginRight: 10 }}>
               <Flex align="center" gap={8}>
