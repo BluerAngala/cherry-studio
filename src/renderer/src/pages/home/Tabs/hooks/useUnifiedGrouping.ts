@@ -43,14 +43,12 @@ export const useUnifiedGrouping = (options: UseUnifiedGroupingOptions) => {
         }
         groups.get(groupKey)!.push(item)
       } else {
-        // Assistants use their tags
-        const tags = item.data.tags?.length ? item.data.tags : [t('assistants.tags.untagged')]
-        tags.forEach((tag) => {
-          if (!groups.has(tag)) {
-            groups.set(tag, [])
-          }
-          groups.get(tag)!.push(item)
-        })
+        // Assistants use their first tag only
+        const tag = item.data.tags?.length ? item.data.tags[0] : t('assistants.tags.untagged')
+        if (!groups.has(tag)) {
+          groups.set(tag, [])
+        }
+        groups.get(tag)!.push(item)
       }
     })
 
@@ -87,8 +85,8 @@ export const useUnifiedGrouping = (options: UseUnifiedGroupingOptions) => {
       // Update assistants state
       let insertIndex = 0
       const updatedAssistants = assistants.map((a) => {
-        const tags = a.tags?.length ? a.tags : [t('assistants.tags.untagged')]
-        if (tags.includes(tag)) {
+        const primaryTag = a.tags?.length ? a.tags[0] : t('assistants.tags.untagged')
+        if (primaryTag === tag) {
           const replaced = newAssistants[insertIndex]
           insertIndex += 1
           return replaced || a

@@ -12,7 +12,7 @@ import { UNKNOWN } from '@renderer/config/translate'
 import { getStoreProviders } from '@renderer/hooks/useStore'
 import i18n from '@renderer/i18n'
 import store from '@renderer/store'
-import { addAssistant } from '@renderer/store/assistants'
+import { addAssistant, setTagsOrder } from '@renderer/store/assistants'
 import type {
   Assistant,
   AssistantPreset,
@@ -263,6 +263,9 @@ export async function createAssistantFromAgent(agent: AssistantPreset) {
   const assistantId = uuid()
   const topic = getDefaultTopic(assistantId)
 
+  // 将 group 转换为 tags（如果 group 存在）
+  const tags = agent.group && agent.group.length > 0 ? agent.group : undefined
+
   const assistant: Assistant = {
     ...agent,
     id: assistantId,
@@ -272,10 +275,20 @@ export async function createAssistantFromAgent(agent: AssistantPreset) {
     model: agent.defaultModel,
     type: 'assistant',
     regularPhrases: agent.regularPhrases || [], // Ensured regularPhrases
-    settings: agent.settings || DEFAULT_ASSISTANT_SETTINGS
+    settings: agent.settings || DEFAULT_ASSISTANT_SETTINGS,
+    tags
   }
 
   store.dispatch(addAssistant(assistant))
+
+  // 同步更新标签顺序：将新标签添加到 tagsOrder 中（如果不存在）
+  if (tags && tags.length > 0) {
+    const currentTagsOrder = store.getState().assistants.tagsOrder || []
+    const newTags = tags.filter((tag) => !currentTagsOrder.includes(tag))
+    if (newTags.length > 0) {
+      store.dispatch(setTagsOrder([...currentTagsOrder, ...newTags]))
+    }
+  }
 
   window.toast.success(i18n.t('message.assistant.added.content'))
 

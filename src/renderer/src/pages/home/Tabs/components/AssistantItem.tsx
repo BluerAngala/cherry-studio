@@ -8,14 +8,13 @@ import AssistantSettingsPopup from '@renderer/pages/settings/AssistantSettings'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
 import { useAppDispatch } from '@renderer/store'
 import { setActiveTopicOrSessionAction } from '@renderer/store/runtime'
-import type { Assistant, AssistantsSortType } from '@renderer/types'
+import type { Assistant } from '@renderer/types'
 import { cn, uuid } from '@renderer/utils'
 import { hasTopicPendingRequests } from '@renderer/utils/queue'
 import type { MenuProps } from 'antd'
 import { Dropdown } from 'antd'
 import { omit } from 'lodash'
 import {
-  AlignJustify,
   ArrowDownAZ,
   ArrowUpAZ,
   BrushCleaning,
@@ -25,8 +24,7 @@ import {
   Save,
   Settings2,
   Smile,
-  Tag,
-  Tags
+  Tag
 } from 'lucide-react'
 import type { FC, PropsWithChildren } from 'react'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
@@ -37,15 +35,13 @@ import AssistantTagsPopup from './AssistantTagsPopup'
 
 interface AssistantItemProps {
   assistant: Assistant
-  isActive: boolean
-  sortBy: AssistantsSortType
+  isActive?: boolean
   onSwitch: (assistant: Assistant) => void
   onDelete: (assistant: Assistant) => void
   onCreateDefaultAssistant: () => void
   addPreset: (agent: any) => void
   copyAssistant: (assistant: Assistant) => void
   onTagClick?: (tag: string) => void
-  handleSortByChange?: (sortType: AssistantsSortType) => void
   sortByPinyinAsc?: () => void
   sortByPinyinDesc?: () => void
 }
@@ -53,12 +49,10 @@ interface AssistantItemProps {
 const AssistantItem: FC<AssistantItemProps> = ({
   assistant,
   isActive,
-  sortBy,
   onSwitch,
   onDelete,
   addPreset,
   copyAssistant,
-  handleSortByChange,
   sortByPinyinAsc: externalSortByPinyinAsc,
   sortByPinyinDesc: externalSortByPinyinDesc
 }) => {
@@ -109,8 +103,6 @@ const AssistantItem: FC<AssistantItemProps> = ({
         onDelete,
         removeAllTopics,
         setAssistantIconType,
-        sortBy,
-        handleSortByChange,
         sortByPinyinAsc,
         sortByPinyinDesc
       }),
@@ -126,8 +118,6 @@ const AssistantItem: FC<AssistantItemProps> = ({
       onDelete,
       removeAllTopics,
       setAssistantIconType,
-      sortBy,
-      handleSortByChange,
       sortByPinyinAsc,
       sortByPinyinDesc
     ]
@@ -177,7 +167,7 @@ const AssistantItem: FC<AssistantItemProps> = ({
             trigger={['click']}
             popupRender={(menu) => <div onPointerDown={(e) => e.stopPropagation()}>{menu}</div>}>
             <MenuButton onClick={handleMenuButtonClick}>
-              <MoreVertical size={14} className="text-[var(--color-text-secondary)]" />
+              <MoreVertical size={14} className="text-(--color-text-secondary)" />
             </MenuButton>
           </Dropdown>
         )}
@@ -202,10 +192,16 @@ const handleTagOperation = (
   assistants: Assistant[],
   updateAssistants: (assistants: Assistant[]) => void
 ) => {
-  const removeTag = () => updateAssistants(assistants.map((a) => (a.id === assistant.id ? { ...a, tags: [] } : a)))
-  const addTag = () => updateAssistants(assistants.map((a) => (a.id === assistant.id ? { ...a, tags: [tag] } : a)))
   const hasTag = assistant.tags?.includes(tag)
-  hasTag ? removeTag() : addTag()
+  if (hasTag) {
+    // 移除标签
+    updateAssistants(
+      assistants.map((a) => (a.id === assistant.id ? { ...a, tags: a.tags?.filter((t) => t !== tag) } : a))
+    )
+  } else {
+    // 添加标签（支持多标签）
+    updateAssistants(assistants.map((a) => (a.id === assistant.id ? { ...a, tags: [...(a.tags || []), tag] } : a)))
+  }
 }
 
 // 提取创建菜单项的函数
@@ -240,7 +236,10 @@ const createTagMenuItems = (
       })
 
       if (tagName && tagName.trim()) {
-        updateAssistants(assistants.map((a) => (a.id === assistant.id ? { ...a, tags: [tagName.trim()] } : a)))
+        // 添加新标签（支持多标签，追加到现有标签列表）
+        updateAssistants(
+          assistants.map((a) => (a.id === assistant.id ? { ...a, tags: [...(a.tags || []), tagName.trim()] } : a))
+        )
       }
     }
   })
@@ -272,8 +271,6 @@ function getMenuItems({
   onDelete,
   removeAllTopics,
   setAssistantIconType,
-  sortBy,
-  handleSortByChange,
   sortByPinyinAsc,
   sortByPinyinDesc
 }): MenuProps['items'] {
@@ -353,14 +350,6 @@ function getMenuItems({
       children: createTagMenuItems(allTags, assistant, assistants, updateAssistants, t)
     },
     {
-      label: sortBy === 'list' ? t('assistants.list.showByTags') : t('assistants.list.showByList'),
-      key: 'switch-view',
-      icon: sortBy === 'list' ? <Tags size={14} /> : <AlignJustify size={14} />,
-      onClick: () => {
-        sortBy === 'list' ? handleSortByChange?.('tags') : handleSortByChange?.('list')
-      }
-    },
-    {
       label: t('common.sort.pinyin.asc'),
       key: 'sort-asc',
       icon: <ArrowDownAZ size={14} />,
@@ -402,9 +391,9 @@ const Container = ({
   <div
     {...props}
     className={cn(
-      'relative flex h-[37px] w-[calc(var(--assistants-width)-20px)] cursor-pointer flex-row justify-between rounded-[var(--list-item-border-radius)] border-[0.5px] border-transparent px-2',
-      !isActive && 'hover:bg-[var(--color-list-item-hover)]',
-      isActive && 'bg-[var(--color-list-item)] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',
+      'relative flex h-[37px] w-[calc(var(--assistants-width)-20px)] cursor-pointer flex-row justify-between rounded-(--list-item-border-radius) border-[0.5px] border-transparent px-2',
+      !isActive && 'hover:bg-(--color-list-item-hover)',
+      isActive && 'bg-(--color-list-item) shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',
       className
     )}>
     {children}
@@ -418,7 +407,7 @@ const AssistantNameRow = ({
 }: PropsWithChildren<{} & React.HTMLAttributes<HTMLDivElement>>) => (
   <div
     {...props}
-    className={cn('flex min-w-0 flex-1 flex-row items-center gap-2 text-[13px] text-[var(--color-text)]', className)}>
+    className={cn('flex min-w-0 flex-1 flex-row items-center gap-2 text-(--color-text) text-[13px]', className)}>
     {children}
   </div>
 )
@@ -443,7 +432,7 @@ const MenuButton = ({
   <div
     {...props}
     className={cn(
-      'absolute top-[6px] right-[9px] flex h-[22px] min-h-[22px] min-w-[22px] flex-row items-center justify-center rounded-[11px] border-[0.5px] border-[var(--color-border)] bg-[var(--color-background)] px-[5px]',
+      'absolute top-[6px] right-[9px] flex h-[22px] min-h-[22px] min-w-[22px] flex-row items-center justify-center rounded-[11px] border-(--color-border) border-[0.5px] bg-(--color-background) px-[5px]',
       className
     )}>
     {children}

@@ -4,16 +4,14 @@ import { useApiServer } from '@renderer/hooks/useApiServer'
 import { useAssistants } from '@renderer/hooks/useAssistant'
 import { useAssistantPresets } from '@renderer/hooks/useAssistantPresets'
 import { useRuntime } from '@renderer/hooks/useRuntime'
-import { useAssistantsTabSortType } from '@renderer/hooks/useStore'
 import { useTags } from '@renderer/hooks/useTags'
-import type { Assistant, AssistantsSortType, Topic } from '@renderer/types'
+import type { Assistant, Topic } from '@renderer/types'
 import type { FC } from 'react'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 import UnifiedAddButton from './components/UnifiedAddButton'
-import { UnifiedList } from './components/UnifiedList'
 import { UnifiedTagGroups } from './components/UnifiedTagGroups'
 import { useActiveAgent } from './hooks/useActiveAgent'
 import { useUnifiedGrouping } from './hooks/useUnifiedGrouping'
@@ -44,11 +42,10 @@ const AssistantsTab: FC<AssistantsTabProps> = (props) => {
   const { assistants, removeAssistant, copyAssistant, updateAssistants } = useAssistants()
   const { addAssistantPreset } = useAssistantPresets()
   const { collapsedTags, toggleTagCollapse } = useTags()
-  const { assistantsTabSortType = 'list', setAssistantsTabSortType } = useAssistantsTabSortType()
   const [dragging, setDragging] = useState(false)
 
   // Unified items management
-  const { unifiedItems, handleUnifiedListReorder } = useUnifiedItems({
+  const { unifiedItems } = useUnifiedItems({
     agents,
     assistants,
     apiServerEnabled,
@@ -91,13 +88,6 @@ const AssistantsTab: FC<AssistantsTabProps> = (props) => {
     [assistants, activeAssistant?.id, removeAssistant, t, setActiveAssistant]
   )
 
-  const handleSortByChange = useCallback(
-    (sortType: AssistantsSortType) => {
-      setAssistantsTabSortType(sortType)
-    },
-    [setAssistantsTabSortType]
-  )
-
   const handleAgentPress = useCallback(
     (agentId: string) => {
       setActiveAgentId(agentId)
@@ -130,49 +120,25 @@ const AssistantsTab: FC<AssistantsTabProps> = (props) => {
         setActiveAgentId={setActiveAgentId}
       />
 
-      {assistantsTabSortType === 'tags' ? (
-        <UnifiedTagGroups
-          groupedItems={groupedUnifiedItems}
-          activeAssistantId={activeAssistant.id}
-          activeAgentId={activeAgentId}
-          sortBy={assistantsTabSortType}
-          collapsedTags={collapsedTags}
-          onGroupReorder={handleUnifiedGroupReorder}
-          onDragStart={() => setDragging(true)}
-          onDragEnd={() => setDragging(false)}
-          onToggleTagCollapse={toggleTagCollapse}
-          onAssistantSwitch={setActiveAssistant}
-          onAssistantDelete={onDeleteAssistant}
-          onAgentDelete={deleteAgent}
-          onAgentPress={handleAgentPress}
-          addPreset={addAssistantPreset}
-          copyAssistant={copyAssistant}
-          onCreateDefaultAssistant={onCreateDefaultAssistant}
-          handleSortByChange={handleSortByChange}
-          sortByPinyinAsc={sortByPinyinAsc}
-          sortByPinyinDesc={sortByPinyinDesc}
-        />
-      ) : (
-        <UnifiedList
-          items={unifiedItems}
-          activeAssistantId={activeAssistant.id}
-          activeAgentId={activeAgentId}
-          sortBy={assistantsTabSortType}
-          onReorder={handleUnifiedListReorder}
-          onDragStart={() => setDragging(true)}
-          onDragEnd={() => setDragging(false)}
-          onAssistantSwitch={setActiveAssistant}
-          onAssistantDelete={onDeleteAssistant}
-          onAgentDelete={deleteAgent}
-          onAgentPress={handleAgentPress}
-          addPreset={addAssistantPreset}
-          copyAssistant={copyAssistant}
-          onCreateDefaultAssistant={onCreateDefaultAssistant}
-          handleSortByChange={handleSortByChange}
-          sortByPinyinAsc={sortByPinyinAsc}
-          sortByPinyinDesc={sortByPinyinDesc}
-        />
-      )}
+      <UnifiedTagGroups
+        groupedItems={groupedUnifiedItems}
+        activeAssistantId={activeAssistant.id}
+        activeAgentId={activeAgentId}
+        collapsedTags={collapsedTags}
+        onGroupReorder={handleUnifiedGroupReorder}
+        onDragStart={() => setDragging(true)}
+        onDragEnd={() => setDragging(false)}
+        onToggleTagCollapse={toggleTagCollapse}
+        onAssistantSwitch={setActiveAssistant}
+        onAssistantDelete={onDeleteAssistant}
+        onAgentDelete={deleteAgent}
+        onAgentPress={handleAgentPress}
+        addPreset={addAssistantPreset}
+        copyAssistant={copyAssistant}
+        onCreateDefaultAssistant={onCreateDefaultAssistant}
+        sortByPinyinAsc={sortByPinyinAsc}
+        sortByPinyinDesc={sortByPinyinDesc}
+      />
 
       {!dragging && <div style={{ minHeight: 10 }}></div>}
     </Container>

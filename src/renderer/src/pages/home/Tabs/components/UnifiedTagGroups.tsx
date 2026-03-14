@@ -1,5 +1,5 @@
 import { DraggableList } from '@renderer/components/DraggableList'
-import type { Assistant, AssistantsSortType } from '@renderer/types'
+import type { Assistant } from '@renderer/types'
 import type { FC } from 'react'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -18,7 +18,6 @@ interface UnifiedTagGroupsProps {
   groupedItems: GroupedItems[]
   activeAssistantId: string
   activeAgentId: string | null
-  sortBy: AssistantsSortType
   collapsedTags: Record<string, boolean>
   onGroupReorder: (tag: string, newList: UnifiedItem[]) => void
   onDragStart: () => void
@@ -31,7 +30,6 @@ interface UnifiedTagGroupsProps {
   addPreset: (assistant: Assistant) => void
   copyAssistant: (assistant: Assistant) => void
   onCreateDefaultAssistant: () => void
-  handleSortByChange: (sortType: AssistantsSortType) => void
   sortByPinyinAsc: () => void
   sortByPinyinDesc: () => void
 }
@@ -41,7 +39,6 @@ export const UnifiedTagGroups: FC<UnifiedTagGroupsProps> = (props) => {
     groupedItems,
     activeAssistantId,
     activeAgentId,
-    sortBy,
     collapsedTags,
     onGroupReorder,
     onDragStart,
@@ -54,7 +51,6 @@ export const UnifiedTagGroups: FC<UnifiedTagGroupsProps> = (props) => {
     addPreset,
     copyAssistant,
     onCreateDefaultAssistant,
-    handleSortByChange,
     sortByPinyinAsc,
     sortByPinyinDesc
   } = props
@@ -79,13 +75,11 @@ export const UnifiedTagGroups: FC<UnifiedTagGroupsProps> = (props) => {
             key={`assistant-${item.data.id}`}
             assistant={item.data}
             isActive={item.data.id === activeAssistantId}
-            sortBy={sortBy}
             onSwitch={onAssistantSwitch}
             onDelete={onAssistantDelete}
             addPreset={addPreset}
             copyAssistant={copyAssistant}
             onCreateDefaultAssistant={onCreateDefaultAssistant}
-            handleSortByChange={handleSortByChange}
             sortByPinyinAsc={sortByPinyinAsc}
             sortByPinyinDesc={sortByPinyinDesc}
           />
@@ -95,7 +89,6 @@ export const UnifiedTagGroups: FC<UnifiedTagGroupsProps> = (props) => {
     [
       activeAgentId,
       activeAssistantId,
-      sortBy,
       onAssistantSwitch,
       onAssistantDelete,
       onAgentDelete,
@@ -103,7 +96,6 @@ export const UnifiedTagGroups: FC<UnifiedTagGroupsProps> = (props) => {
       addPreset,
       copyAssistant,
       onCreateDefaultAssistant,
-      handleSortByChange,
       sortByPinyinAsc,
       sortByPinyinDesc
     ]
@@ -115,9 +107,10 @@ export const UnifiedTagGroups: FC<UnifiedTagGroupsProps> = (props) => {
         <TagGroup
           key={group.tag}
           tag={group.tag}
+          count={group.items.length}
           isCollapsed={collapsedTags[group.tag]}
           onToggle={onToggleTagCollapse}
-          showTitle={group.tag !== t('assistants.tags.untagged')}>
+          showTitle={groupedItems.length > 1 || group.tag !== t('assistants.tags.untagged')}>
           <DraggableList
             list={group.items}
             itemKey={(item) => `${item.type}-${item.data.id}`}

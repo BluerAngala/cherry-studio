@@ -47,7 +47,10 @@ const PopupContainer: React.FC<Props> = ({ title, resolve }) => {
           updateAssistants(
             assistants.map((assistant) => {
               const findedAssitant = relatedAssistants.find((_assistant) => _assistant.id === assistant.id)
-              return findedAssitant ? { ...findedAssitant, tags: [] } : assistant
+              // 只移除当前标签，保留其他标签
+              return findedAssitant
+                ? { ...findedAssitant, tags: findedAssitant.tags?.filter((tag) => tag !== removedTag) }
+                : assistant
             })
           )
         }

@@ -272,10 +272,12 @@ logger.error("message", error);
 
 ### Styling
 
-- **styled-components only** — TailwindCSS is NOT used in components
-- Use transient props (`$color`, `$hoverColor`) for props that shouldn't pass to DOM
-- Layout primitives available: `Box`, `HStack`, `VStack`, `Center` from `@renderer/components/Layout`
-- Ant Design 5 is the primary UI library — use antd components as base, extend with styled-components
+- **Hybrid Approach**: The project uses Ant Design 5 as the base UI library, supplemented by `styled-components` for complex custom components and `TailwindCSS v4` for layout and utility styling.
+- **TailwindCSS v4 Syntax**: Use the simplified syntax for CSS variables.
+  - **Correct**: `text-(--color-text)`, `bg-(--color-background)`, `rounded-(--border-radius)`
+  - **Incorrect**: `text-[var(--color-text)]`, `bg-[var(--color-background)]`, `rounded-[var(--border-radius)]`
+- Use transient props (`$color`, `$hoverColor`) for `styled-components` props that shouldn't pass to DOM.
+- Layout primitives available: `Box`, `HStack`, `VStack`, `Center` from `@renderer/components/Layout`.
 
 ### i18n
 
