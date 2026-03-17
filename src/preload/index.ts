@@ -697,7 +697,9 @@ const api = {
     getChannels: (): Promise<OpenClawChannelInfo[]> => ipcRenderer.invoke(IpcChannel.OpenClaw_GetChannels)
   },
   model: {
-    listModels: (provider: Provider): Promise<{ id: string; object?: string; owned_by?: string; description?: string }[]> =>
+    listModels: (
+      provider: Provider
+    ): Promise<{ id: string; object?: string; owned_by?: string; description?: string }[]> =>
       ipcRenderer.invoke(IpcChannel.Model_ListModels, provider),
     getEmbeddingDimensions: (provider: Provider, model: Model): Promise<number> =>
       ipcRenderer.invoke(IpcChannel.Model_GetEmbeddingDimensions, provider, model)
