@@ -13,6 +13,8 @@ import { BrainstormPage, BrainstormProvider } from './features/brainstorm'
 import NavigationHandler from './handler/NavigationHandler'
 import { useModelAvailability } from './hooks/useModelAvailability'
 import { useNavbarPosition } from './hooks/useSettings'
+import { cleanupProviders } from './store/llm'
+import { useAppDispatch } from './store'
 import CodeToolsPage from './pages/code/CodeToolsPage'
 import FilesPage from './pages/files/FilesPage'
 import HomePage from './pages/home/HomePage'
@@ -30,9 +32,15 @@ import TranslatePage from './pages/translate/TranslatePage'
 const Router: FC = () => {
   const { navbarPosition } = useNavbarPosition()
   const { isModelAvailable } = useModelAvailability()
+  const dispatch = useAppDispatch()
   const [isOnboarded, setIsOnboarded] = useState<boolean>(() => {
     return localStorage.getItem('cherry_studio_onboarded') === 'true'
   })
+
+  // 每次启动时清理已废弃的系统 Provider
+  useEffect(() => {
+    dispatch(cleanupProviders())
+  }, [dispatch])
 
   // 如果模型不可用，且不在设置页面，则强制显示引导页
   const showGuide = !isOnboarded || !isModelAvailable

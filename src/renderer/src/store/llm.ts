@@ -18,8 +18,9 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
 import { isLocalAi } from '@renderer/config/env'
 import { SYSTEM_MODELS } from '@renderer/config/models'
-import { SYSTEM_PROVIDERS } from '@renderer/config/providers'
-import type { AwsBedrockAuthType, Model, Provider } from '@renderer/types'
+import { SYSTEM_PROVIDERS, SYSTEM_PROVIDERS_CONFIG } from '@renderer/config/providers'
+import type { AwsBedrockAuthType, Model, Provider, SystemProviderId } from '@renderer/types'
+import { isSystemProvider } from '@renderer/types'
 import { uniqBy } from 'lodash'
 
 type LlmSettings = {
@@ -161,6 +162,15 @@ const llmSlice = createSlice({
     updateProviders: (state, action: PayloadAction<Provider[]>) => {
       state.providers = action.payload
     },
+    // 清理无效的系统提供商
+    cleanupProviders: (state) => {
+      state.providers = state.providers.filter((p) => {
+        if (isSystemProvider(p)) {
+          return !!SYSTEM_PROVIDERS_CONFIG[p.id as SystemProviderId]
+        }
+        return true
+      })
+    },
     addProvider: (state, action: PayloadAction<Provider>) => {
       state.providers.unshift(action.payload)
     },
@@ -279,6 +289,7 @@ const llmSlice = createSlice({
 export const {
   updateProvider,
   updateProviders,
+  cleanupProviders,
   addProvider,
   removeProvider,
   addModel,

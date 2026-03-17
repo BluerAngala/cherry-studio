@@ -56,11 +56,15 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 
 ### v1.1.0 - 业务场景重构版 (OpenCode Agent)
 
-**状态**: 📋 规划中  
+**状态**: 🚧 开发中  
 **目标日期**: 2025 Q3
 
-#### 核心功能
-
+#### 架构与引擎演进
+- [x] **底层大模型引擎架构梳理**
+  - [x] 确立向 Vercel AI SDK 架构 (`packages/aiCore`) 演进的整体方向
+  - [x] 基于适配器模式保留对现有前端 Chunk 的兼容支持
+  - [x] 清理旧版冗余提供商，仅保留 OpenAI、Anthropic、SiliconFlow 及内部内置提供商，极大地精简了底层架构
+- [ ] **逐步弃用 LegacyAiProvider** - 将保留的 Provider 完全迁移至 ModernAiProvider
 - [ ] **OpenCode Agent 架构重构** - 替换现有 Agent 实现逻辑
   - [ ] 基于 `@opencode-ai/sdk` 重构 Agent 核心
   - [ ] 统一 Agent 生命周期管理

@@ -14,7 +14,6 @@ import AiProvider from '@renderer/aiCore'
 import type { BaseApiClient, OpenAIAPIClient, ResponseChunkTransformerContext } from '@renderer/aiCore/legacy/clients'
 import type { AnthropicAPIClient } from '@renderer/aiCore/legacy/clients/anthropic/AnthropicAPIClient'
 import { ApiClientFactory } from '@renderer/aiCore/legacy/clients/ApiClientFactory'
-import type { GeminiAPIClient } from '@renderer/aiCore/legacy/clients/gemini/GeminiAPIClient'
 import type { OpenAIResponseAPIClient } from '@renderer/aiCore/legacy/clients/openai/OpenAIResponseAPIClient'
 import type { GenericChunk } from '@renderer/aiCore/legacy/middleware/schemas'
 import { isVisionModel } from '@renderer/config/models'
@@ -1472,7 +1471,7 @@ const mockGeminiApiClient = {
   getBaseURL: vi.fn(() => 'https://api.gemini.com'),
   getApiKey: vi.fn(() => 'mock-api-key'),
   getClientCompatibilityType: vi.fn(() => ['GeminiAPIClient'])
-} as unknown as GeminiAPIClient
+} as unknown as BaseApiClient
 
 const mockAnthropicApiClient = {
   createCompletions: vi.fn().mockImplementation(() => anthropicTextNonStreamChunkGenerator()),

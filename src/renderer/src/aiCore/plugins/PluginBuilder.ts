@@ -1,5 +1,5 @@
 import type { AiPlugin } from '@cherrystudio/ai-core'
-import { createPromptToolUsePlugin, webSearchPlugin } from '@cherrystudio/ai-core/built-in/plugins'
+import { createPromptToolUsePlugin, webSearchPlugin, lawPlugin } from '@cherrystudio/ai-core/built-in/plugins'
 import { loggerService } from '@logger'
 import { isGemini3Model, isQwen35Model, isSupportedThinkingTokenQwenModel } from '@renderer/config/models'
 import { getEnableDeveloperMode } from '@renderer/hooks/useSettings'
@@ -137,6 +137,23 @@ export function buildPlugins({ provider, model, config }: BuildPluginsContext): 
   // if (config.enableUrlContext && config.) {
   //   plugins.push(googleToolsPlugin({ urlContext: true }))
   // }
+
+  // 5. Cherry Law 专属插件
+  // 如果助手名称或描述中包含"Law"或"法律"，自动启用法律插件
+  if (config.assistant) {
+    const name = config.assistant.name || ''
+    const desc = config.assistant.description || ''
+    const isLawMode =
+      name.toLowerCase().includes('law') ||
+      name.includes('法律') ||
+      desc.toLowerCase().includes('law') ||
+      desc.includes('法律')
+
+    if (isLawMode) {
+      plugins.push(lawPlugin({ enabled: true }))
+      logger.info('Law Plugin enabled', { assistantName: name })
+    }
+  }
 
   logger.debug(
     'Final plugin list:',

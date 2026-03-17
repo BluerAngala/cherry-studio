@@ -19,7 +19,7 @@ export const ApiModelSchema = z.object({
   owned_by: z.string(),
   provider: z.string().optional(),
   provider_name: z.string().optional(),
-  provider_type: ProviderTypeSchema.optional(),
+  provider_type: z.string().optional(),
   provider_model_id: z.string().optional()
 })
 

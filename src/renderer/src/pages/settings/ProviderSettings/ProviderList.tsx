@@ -7,10 +7,11 @@ import {
 } from '@renderer/components/DraggableList'
 import { DeleteIcon, EditIcon } from '@renderer/components/Icons'
 import { ProviderAvatar } from '@renderer/components/ProviderAvatar'
+import { SYSTEM_PROVIDERS_CONFIG } from '@renderer/config/providers'
 import { useAllProviders, useProviders } from '@renderer/hooks/useProvider'
 import { useTimer } from '@renderer/hooks/useTimer'
 import ImageStorage from '@renderer/services/ImageStorage'
-import type { Provider, ProviderType } from '@renderer/types'
+import type { Provider, ProviderType, SystemProviderId } from '@renderer/types'
 import { isSystemProvider } from '@renderer/types'
 import { getFancyProviderName, matchKeywordsInModel, matchKeywordsInProvider, uuid } from '@renderer/utils'
 import type { MenuProps } from 'antd'
@@ -289,6 +290,11 @@ const ProviderList: FC = () => {
   }
 
   const filteredProviders = providers.filter((provider) => {
+    // 强制过滤掉不在系统配置中的系统提供商
+    if (isSystemProvider(provider) && !SYSTEM_PROVIDERS_CONFIG[provider.id as SystemProviderId]) {
+      return false
+    }
+
     // don't show it when isOvmsSupported is loading
     if (provider.id === 'ovms' && !isOvmsSupported) {
       return false

@@ -8,9 +8,6 @@ import type { GenerateImageParams, Model, Provider } from '@renderer/types'
 import type { RequestOptions, SdkModel } from '@renderer/types/sdk'
 import { isSupportedToolUse } from '@renderer/utils/mcp-tools'
 
-import { AihubmixAPIClient } from './clients/aihubmix/AihubmixAPIClient'
-import { VertexAPIClient } from './clients/gemini/VertexAPIClient'
-import { NewAPIClient } from './clients/newapi/NewAPIClient'
 import { OpenAIResponseAPIClient } from './clients/openai/OpenAIResponseAPIClient'
 import { CompletionsMiddlewareBuilder } from './middleware/builder'
 import { MIDDLEWARE_NAME as AbortHandlerMiddlewareName } from './middleware/common/AbortHandlerMiddleware'
@@ -46,21 +43,8 @@ export default class AiProvider {
     // 根据client类型选择合适的处理方式
     let client: BaseApiClient
 
-    if (this.apiClient instanceof AihubmixAPIClient) {
-      // AihubmixAPIClient: 根据模型选择合适的子client
-      client = this.apiClient.getClientForModel(model)
-      if (client instanceof OpenAIResponseAPIClient) {
-        client = client.getClient(model) as BaseApiClient
-      }
-    } else if (this.apiClient instanceof NewAPIClient) {
-      client = this.apiClient.getClientForModel(model)
-      if (client instanceof OpenAIResponseAPIClient) {
-        client = client.getClient(model) as BaseApiClient
-      }
-    } else if (this.apiClient instanceof OpenAIResponseAPIClient) {
+    if (this.apiClient instanceof OpenAIResponseAPIClient) {
       // OpenAIResponseAPIClient: 根据模型特征选择API类型
-      client = this.apiClient.getClient(model) as BaseApiClient
-    } else if (this.apiClient instanceof VertexAPIClient) {
       client = this.apiClient.getClient(model) as BaseApiClient
     } else {
       // 其他client直接使用
@@ -168,10 +152,6 @@ export default class AiProvider {
   }
 
   public async generateImage(params: GenerateImageParams): Promise<string[]> {
-    if (this.apiClient instanceof AihubmixAPIClient) {
-      const client = this.apiClient.getClientForModel({ id: params.model } as Model)
-      return client.generateImage(params)
-    }
     return this.apiClient.generateImage(params)
   }
 

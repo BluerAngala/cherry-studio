@@ -12,7 +12,7 @@ import { getProviderByModel } from '@renderer/services/AssistantService'
 import { getProviderById } from '@renderer/services/ProviderService'
 import store from '@renderer/store'
 import type { EndpointType } from '@renderer/types'
-import { isSystemProvider, type Model, type Provider, SystemProviderIds } from '@renderer/types'
+import { type Model, type Provider, SystemProviderIds } from '@renderer/types'
 import type { OpenAICompletionsStreamOptions } from '@renderer/types/aiCoreTypes'
 import {
   formatApiHost,
@@ -27,7 +27,6 @@ import {
   isAzureOpenAIProvider,
   isCherryAIProvider,
   isGeminiProvider,
-  isNewApiProvider,
   isOllamaProvider,
   isPerplexityProvider,
   isSupportDeveloperRoleProvider,
@@ -38,30 +37,13 @@ import { defaultAppHeaders } from '@shared/utils'
 import { cloneDeep, isEmpty } from 'lodash'
 
 import type { AiSdkConfig } from '../types'
-import { aihubmixProviderCreator, newApiResolverCreator, vertexAnthropicProviderCreator } from './config'
-import { azureAnthropicProviderCreator } from './config/azure-anthropic'
 import { COPILOT_DEFAULT_HEADERS } from './constants'
 import { getAiSdkProviderId } from './factory'
 
 /**
  * 处理特殊provider的转换逻辑
  */
-function handleSpecialProviders(model: Model, provider: Provider): Provider {
-  if (isNewApiProvider(provider)) {
-    return newApiResolverCreator(model, provider)
-  }
-
-  if (isSystemProvider(provider)) {
-    if (provider.id === 'aihubmix') {
-      return aihubmixProviderCreator(model, provider)
-    }
-    if (provider.id === 'vertexai') {
-      return vertexAnthropicProviderCreator(model, provider)
-    }
-  }
-  if (isAzureOpenAIProvider(provider)) {
-    return azureAnthropicProviderCreator(model, provider)
-  }
+function handleSpecialProviders(_model: Model, provider: Provider): Provider {
   return provider
 }
 
