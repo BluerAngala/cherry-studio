@@ -15,10 +15,10 @@
  * --------------------------------------------------------------------------
  */
 import { loggerService } from '@logger'
-import db from '@renderer/databases'
 import { addFiles as addFilesAction, addItem, updateNotes } from '@renderer/store/knowledge'
 import type { FileMetadata, KnowledgeItem } from '@renderer/types'
 import { isKnowledgeNoteItem } from '@renderer/types'
+import { IpcChannel } from '@shared/IpcChannel'
 import { v4 as uuidv4 } from 'uuid'
 
 import type { AppDispatch } from '..'
@@ -76,8 +76,8 @@ export const addNoteThunk = (baseId: string, content: string) => async (dispatch
     throw new Error('Invalid note item')
   }
 
-  // 存储完整笔记到数据库，出错时交给调用者处理
-  await db.knowledge_notes.add(note)
+  // 存储完整笔记到主进程数据库
+  await window.electron.ipcRenderer.invoke(IpcChannel.DataItem_PutKnowledgeNote, note)
 
   // 在 store 中只存储引用
   const noteRef = { ...note, content: '' } // store中不需要存储实际内容

@@ -61,7 +61,7 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
   - [x] 会话与消息记录 (`DexieMessageDataSource`, `db.topics`, `db.message_blocks`) 核心迁移
   - [x] 知识库与词条 (`Knowledge`, `QuickPhrase`) 迁移
   - [x] 翻译相关数据 (`translate_history`, `translate_languages`, `translate:target:language` 设置)
-  - [ ] 全面废弃渲染进程 Dexie (IndexedDB) 和 Redux-Persist
+  - [x] 全面废弃渲染进程 Dexie (IndexedDB) 和 Redux-Persist 数据层依赖
   - [x] 全面转向主进程 **LibSQL + Drizzle ORM** 架构
   - [x] 实现主进程到渲染进程的标准化数据同步流 (StoreSyncService)
 - [x] **底层大模型引擎重构 (aiCore)**
@@ -227,7 +227,8 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
   - [x] 文件元数据 (`FileManager`, `db.files`)
   - [x] 会话与消息记录 (`TopicMessageService`)
   - [x] 知识库与词条 (`DataItemService`)
-  - [ ] 翻译相关数据 (`translate_history`, `translate_languages`, `translate:target:language` 设置) ⏳ **进行中**
+  - [x] 翻译相关数据 (`TranslateService`)
+  - [x] 清理渲染进程 Dexie 数据层依赖
 - [x] **数据同步机制**：建立主进程到渲染进程的单向/双向数据同步流 (StoreSyncService 增强)
 - [ ] **AI Core 完整适配**：将所有 LLM Provider 迁移至基于 Vercel AI SDK v5 的 `packages/aiCore` ⏳ **OpenAI 部分完成**
 - [ ] **插件引擎基础**：实现基于钩子 (Hooks) 的插件加载与生命周期管理机制

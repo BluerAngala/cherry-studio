@@ -1,16 +1,15 @@
 import { addFiles as addFilesAction, addItem, updateNotes } from '@renderer/store/knowledge'
 import type { FileMetadata, KnowledgeItem } from '@renderer/types'
 import { FILE_TYPE } from '@renderer/types'
+import { IpcChannel } from '@shared/IpcChannel'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { addFilesThunk, addItemThunk, addNoteThunk } from '../knowledgeThunk'
 
 const mocks = vi.hoisted(() => {
   return {
-    db: {
-      knowledge_notes: {
-        add: vi.fn()
-      }
+    ipcRenderer: {
+      invoke: vi.fn()
     },
     uuid: {
       v4: vi.fn()
@@ -24,13 +23,18 @@ const mocks = vi.hoisted(() => {
 })
 
 // Mock dependencies
-vi.mock('@renderer/databases', () => ({
-  db: mocks.db
-}))
+vi.mock('@renderer/databases', () => ({}))
 
 vi.mock('uuid', () => ({
   v4: mocks.uuid.v4
 }))
+
+// Mock window.electron
+vi.stubGlobal('window', {
+  electron: {
+    ipcRenderer: mocks.ipcRenderer
+  }
+})
 
 // Mock action creators
 vi.mock('@renderer/store/knowledge', () => ({
@@ -150,17 +154,17 @@ describe('knowledgeThunk', () => {
   })
 
   describe('addNoteThunk', () => {
-    it('should add note to database and dispatch updateNotes action', async () => {
+    it('should add note via IPC and dispatch updateNotes action', async () => {
       const baseId = 'test-base-id'
       const noteContent = 'This is a test note'
       const timestamp = Date.now()
       vi.spyOn(Date, 'now').mockReturnValue(timestamp)
-      mocks.db.knowledge_notes.add.mockResolvedValue(undefined)
+      mocks.ipcRenderer.invoke.mockResolvedValue(undefined)
 
       await addNoteThunk(baseId, noteContent)(mockDispatch)
 
       const expectedNote = createMockKnowledgeItem('note', noteContent, timestamp)
-      expect(mocks.db.knowledge_notes.add).toHaveBeenCalledWith(expectedNote)
+      expect(mocks.ipcRenderer.invoke).toHaveBeenCalledWith(IpcChannel.DataItem_PutKnowledgeNote, expectedNote)
 
       const expectedNoteRef = createMockKnowledgeItem('note', '', timestamp)
       expect(mockDispatch).toHaveBeenCalledWith(updateNotes({ baseId, item: expectedNoteRef }))
@@ -171,24 +175,24 @@ describe('knowledgeThunk', () => {
       const noteContent = ''
       const timestamp = Date.now()
       vi.spyOn(Date, 'now').mockReturnValue(timestamp)
-      mocks.db.knowledge_notes.add.mockResolvedValue(undefined)
+      mocks.ipcRenderer.invoke.mockResolvedValue(undefined)
 
       await addNoteThunk(baseId, noteContent)(mockDispatch)
 
       const expectedNote = createMockKnowledgeItem('note', '', timestamp)
-      expect(mocks.db.knowledge_notes.add).toHaveBeenCalledWith(expectedNote)
+      expect(mocks.ipcRenderer.invoke).toHaveBeenCalledWith(IpcChannel.DataItem_PutKnowledgeNote, expectedNote)
 
       const expectedNoteRef = createMockKnowledgeItem('note', '', timestamp)
       expect(mockDispatch).toHaveBeenCalledWith(updateNotes({ baseId, item: expectedNoteRef }))
     })
 
-    it('should not dispatch and re-throw the error on database failure', async () => {
+    it('should not dispatch and re-throw the error on IPC failure', async () => {
       const baseId = 'test-base-id'
       const noteContent = 'Test note'
-      const dbError = new Error('Database error')
-      mocks.db.knowledge_notes.add.mockRejectedValue(dbError)
+      const ipcError = new Error('IPC error')
+      mocks.ipcRenderer.invoke.mockRejectedValue(ipcError)
 
-      await expect(addNoteThunk(baseId, noteContent)(mockDispatch)).rejects.toThrow(dbError)
+      await expect(addNoteThunk(baseId, noteContent)(mockDispatch)).rejects.toThrow(ipcError)
 
       expect(mockDispatch).not.toHaveBeenCalled()
     })

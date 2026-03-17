@@ -2,7 +2,6 @@ import { loggerService } from '@logger'
 import { isQwenMTModel } from '@renderer/config/models'
 import { LANG_DETECT_PROMPT } from '@renderer/config/prompts'
 import { builtinLanguages, LanguagesEnum, UNKNOWN } from '@renderer/config/translate'
-import db from '@renderer/databases'
 import i18n from '@renderer/i18n'
 import { fetchChatCompletion } from '@renderer/services/ApiService'
 import { getDefaultAssistant, getDefaultModel, getQuickModel } from '@renderer/services/AssistantService'
@@ -11,6 +10,7 @@ import { getAllCustomLanguages } from '@renderer/services/TranslateService'
 import type { Assistant, TranslateLanguage, TranslateLanguageCode } from '@renderer/types'
 import type { Chunk } from '@renderer/types/chunk'
 import { ChunkType } from '@renderer/types/chunk'
+import { IpcChannel } from '@shared/IpcChannel'
 import { franc } from 'franc-min'
 import type { RefObject } from 'react'
 import React from 'react'
@@ -28,7 +28,7 @@ export const detectLanguage = async (inputText: string): Promise<TranslateLangua
   const text = inputText.trim()
   if (!text) return LanguagesEnum.zhCN.langCode
 
-  let method = (await db.settings.get({ id: 'translate:detect:method' }))?.value
+  let method = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'translate:detect:method')
   if (!method) method = 'auto'
   logger.info(`auto detection method: ${method}`)
 
