@@ -91,6 +91,9 @@
         "failed": "Agent-Liste abrufen fehlgeschlagen"
       }
     },
+    "review": {
+      "title": "[to be translated]:Quality Audit"
+    },
     "server": {
       "error": {
         "not_running": "API server is enabled but not running properly."
@@ -1725,6 +1728,7 @@
     "chunk_size_tooltip": "Größe jedes Segments beim Aufteilen von Dokumenten, darf das Modellkontextlimit nicht überschreiten",
     "chunking_strategy": "[to be translated]:Chunking Strategy",
     "chunking_strategy_tooltip": "[to be translated]:Algorithm for splitting documents. Structural is best for legal docs, Semantic for deep understanding.",
+    "citation_index": "[to be translated]:",
     "clear_selection": "Auswahl löschen",
     "delete": "Löschen",
     "delete_confirm": "Möchten Sie diese Wissensdatenbank wirklich löschen?",
@@ -4314,6 +4318,9 @@
     "general": {
       "auto_check_update": {
         "title": "Automatisches Update"
+      },
+      "auto_review": {
+        "tip": "[to be translated]:Automatically review the quality of AI responses after they are completed"
       },
       "avatar": {
         "builtin": "Integriertes Avatar",

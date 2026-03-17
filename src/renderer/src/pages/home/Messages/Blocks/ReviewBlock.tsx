@@ -1,4 +1,5 @@
 import {
+  AuditOutlined,
   CheckCircleFilled,
   CloseCircleFilled,
   DownOutlined,
@@ -8,7 +9,6 @@ import {
   LoadingOutlined,
   QuestionCircleOutlined,
   ReloadOutlined,
-  StarFilled,
   UpOutlined
 } from '@ant-design/icons'
 import { loggerService } from '@logger'
@@ -415,7 +415,7 @@ const ReviewBlock: React.FC<ReviewBlockProps> = ({ block, message }) => {
     <ReviewContainer $passed={passed} $isFolded={!isExpanded}>
       <ReviewHeader>
         <ReviewTitle onClick={toggleFold} style={{ cursor: 'pointer' }}>
-          <StarFilled style={{ color: scoreLevel.color }} />
+          <AuditOutlined style={{ color: scoreLevel.color }} />
           AI 质量审查
           {passed ? (
             <CheckCircleFilled style={{ color: '#52c41a', marginLeft: 8 }} />

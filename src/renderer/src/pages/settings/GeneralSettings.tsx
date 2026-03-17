@@ -310,8 +310,8 @@ const GeneralSettings: FC = () => {
         <SettingDivider />
         <SettingRow>
           <SettingRowTitle style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span>自动质量审查</span>
-            <Tooltip title="AI 回答完成后自动进行质量审查" placement="right">
+            <span>{t('agent.review.title')}</span>
+            <Tooltip title={t('settings.general.auto_review.tip')} placement="right">
               <InfoCircleOutlined style={{ cursor: 'pointer' }} />
             </Tooltip>
           </SettingRowTitle>

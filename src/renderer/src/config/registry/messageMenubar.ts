@@ -13,6 +13,7 @@ export type MessageMenubarButtonId =
   | 'notes'
   | 'delete'
   | 'trace'
+  | 'review'
   | 'more-menu'
   // dev only
   | 'inspect-data'
@@ -35,6 +36,7 @@ export const DEFAULT_MESSAGE_MENUBAR_BUTTON_IDS: MessageMenubarButtonId[] = [
   'notes',
   'delete',
   'trace',
+  'review',
   'inspect-data',
   'more-menu'
 ]
@@ -43,6 +45,7 @@ export const SESSION_MESSAGE_MENUBAR_BUTTON_IDS: MessageMenubarButtonId[] = [
   'copy',
   'translate',
   'notes',
+  'review',
   'delete',
   'more-menu'
 ]

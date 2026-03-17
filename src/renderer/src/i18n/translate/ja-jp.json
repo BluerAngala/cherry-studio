@@ -91,6 +91,9 @@
         "failed": "エージェントの一覧取得に失敗しました。"
       }
     },
+    "review": {
+      "title": "[to be translated]:Quality Audit"
+    },
     "server": {
       "error": {
         "not_running": "APIサーバーは有効になっていますが、正常に動作していません。"
@@ -1725,6 +1728,7 @@
     "chunk_size_tooltip": "ドキュメントを分割し、各チャンクのサイズ。モデルのコンテキスト制限を超えないようにしてください。",
     "chunking_strategy": "[to be translated]:Chunking Strategy",
     "chunking_strategy_tooltip": "[to be translated]:Algorithm for splitting documents. Structural is best for legal docs, Semantic for deep understanding.",
+    "citation_index": "[to be translated]:",
     "clear_selection": "選択をクリア",
     "delete": "削除",
     "delete_confirm": "このナレッジベースを削除してもよろしいですか？",
@@ -4314,6 +4318,9 @@
     "general": {
       "auto_check_update": {
         "title": "自動更新"
+      },
+      "auto_review": {
+        "tip": "[to be translated]:Automatically review the quality of AI responses after they are completed"
       },
       "avatar": {
         "builtin": "内蔵アバター",

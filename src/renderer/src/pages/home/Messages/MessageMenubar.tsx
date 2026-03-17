@@ -16,6 +16,7 @@ import { useEnableDeveloperMode, useMessageStyle, useSettings } from '@renderer/
 import { useTemporaryValue } from '@renderer/hooks/useTemporaryValue'
 import useTranslate from '@renderer/hooks/useTranslate'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
+import { manualTriggerMessageReview } from '@renderer/services/messageReview/ReviewTriggerService'
 import { getMessageTitle } from '@renderer/services/MessagesService'
 import { translateText } from '@renderer/services/TranslateService'
 import type { RootState } from '@renderer/store'
@@ -62,6 +63,7 @@ import {
   Menu,
   NotebookPen,
   Save,
+  ShieldCheck,
   Split,
   ThumbsUp,
   Upload
@@ -123,6 +125,7 @@ type MessageMenubarButtonContext = {
   onEdit: () => void | Promise<void>
   onMentionModel: (e: React.MouseEvent) => void | Promise<void>
   onRegenerate: (e?: React.MouseEvent) => void | Promise<void>
+  onReview: (e: React.MouseEvent) => void | Promise<void>
   onUseful: (e: React.MouseEvent) => void
   removeMessageBlock: MessageOperationsHandlers['removeMessageBlock']
   setShowDeleteTooltip: Dispatch<SetStateAction<boolean>>
@@ -420,7 +423,11 @@ const MessageMenubar: FC<Props> = (props) => {
             key: 'obsidian',
             onClick: async () => {
               const title = topic.name?.replace(/\\/g, '_') || 'Untitled'
-              await ObsidianExportPopup.show({ title, message, processingMethod: '1' })
+              await ObsidianExportPopup.show({
+                title,
+                message,
+                processingMethod: '1'
+              })
             }
           },
           exportMenuOptions.joplin && {
@@ -531,9 +538,15 @@ const MessageMenubar: FC<Props> = (props) => {
   const onMentionModel = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation()
-      const selectedModel = await SelectModelPopup.show({ model, filter: mentionModelFilter })
+      const selectedModel = await SelectModelPopup.show({
+        model,
+        filter: mentionModelFilter
+      })
       if (!selectedModel) return
-      appendAssistantResponse(message, selectedModel, { ...assistant, model: selectedModel })
+      appendAssistantResponse(message, selectedModel, {
+        ...assistant,
+        model: selectedModel
+      })
     },
     [appendAssistantResponse, assistant, mentionModelFilter, message, model]
   )
@@ -544,6 +557,20 @@ const MessageMenubar: FC<Props> = (props) => {
       onUpdateUseful?.(message.id)
     },
     [message.id, onUpdateUseful]
+  )
+
+  const onReview = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation()
+      const state = store.getState()
+      const topicMessages: Message[] = selectMessagesForTopic(state, topic.id)
+      const relatedUserMessage = topicMessages.find((msg) => {
+        return msg.role === 'user' && message.askId === msg.id
+      })
+      const userQuery = relatedUserMessage ? getMainTextContent(relatedUserMessage) : ''
+      await manualTriggerMessageReview(message, assistant, userQuery)
+    },
+    [assistant, message, topic.id]
   )
 
   const hasTranslationBlocks = useMemo(() => {
@@ -580,6 +607,7 @@ const MessageMenubar: FC<Props> = (props) => {
     onEdit,
     onMentionModel,
     onRegenerate,
+    onReview,
     onUseful,
     removeMessageBlock,
     setShowDeleteTooltip,
@@ -593,7 +621,11 @@ const MessageMenubar: FC<Props> = (props) => {
     <>
       {showMessageTokens && <MessageTokens message={message} />}
       <MenusBar
-        className={classNames({ menubar: true, show: isLastMessage, 'user-bubble-style': isUserBubbleStyleMessage })}>
+        className={classNames({
+          menubar: true,
+          show: isLastMessage,
+          'user-bubble-style': isUserBubbleStyleMessage
+        })}>
         {buttonIds.map((buttonId) => {
           const renderFn = buttonRenderers[buttonId]
           if (!renderFn) {
@@ -765,6 +797,19 @@ const buttonRenderers: Record<MessageMenubarButtonId, MessageMenubarButtonRender
       <Tooltip title={t('message.mention.title')} mouseEnterDelay={0.8}>
         <ActionButton className="message-action-button" onClick={onMentionModel} $softHoverBg={softHoverBg}>
           <AtSign size={15} />
+        </ActionButton>
+      </Tooltip>
+    )
+  },
+  review: ({ isAssistantMessage, onReview, softHoverBg, t }) => {
+    if (!isAssistantMessage) {
+      return null
+    }
+
+    return (
+      <Tooltip title={t('agent.review.title')} mouseEnterDelay={0.8}>
+        <ActionButton className="message-action-button" onClick={onReview} $softHoverBg={softHoverBg}>
+          <ShieldCheck size={15} />
         </ActionButton>
       </Tooltip>
     )
@@ -1015,7 +1060,10 @@ const buttonRenderers: Record<MessageMenubarButtonId, MessageMenubarButtonRender
 
     return (
       <Dropdown
-        menu={{ items: dropdownItems, onClick: (e) => e.domEvent.stopPropagation() }}
+        menu={{
+          items: dropdownItems,
+          onClick: (e) => e.domEvent.stopPropagation()
+        }}
         trigger={['click']}
         placement="topRight">
         <ActionButton className="message-action-button" onClick={(e) => e.stopPropagation()} $softHoverBg={softHoverBg}>

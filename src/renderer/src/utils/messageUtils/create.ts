@@ -335,7 +335,8 @@ export function createReviewBlock(
     ...baseBlock,
     reviewResult,
     userFeedback: overrides.userFeedback,
-    isRegenerating: overrides.isRegenerating
+    isRegenerating: overrides.isRegenerating,
+    isFolded: overrides.isFolded ?? true
   }
 }
 

@@ -91,6 +91,9 @@
         "failed": "Не удалось получить список агентов."
       }
     },
+    "review": {
+      "title": "[to be translated]:Quality Audit"
+    },
     "server": {
       "error": {
         "not_running": "API-сервер включен, но работает неправильно."
@@ -1725,6 +1728,7 @@
     "chunk_size_tooltip": "Размер фрагмента, не превышающий модель контекста",
     "chunking_strategy": "[to be translated]:Chunking Strategy",
     "chunking_strategy_tooltip": "[to be translated]:Algorithm for splitting documents. Structural is best for legal docs, Semantic for deep understanding.",
+    "citation_index": "[to be translated]:",
     "clear_selection": "Очистить выбор",
     "delete": "Удалить",
     "delete_confirm": "Вы уверены, что хотите удалить эту базу знаний?",
@@ -4314,6 +4318,9 @@
     "general": {
       "auto_check_update": {
         "title": "Автоматическое обновление"
+      },
+      "auto_review": {
+        "tip": "[to be translated]:Automatically review the quality of AI responses after they are completed"
       },
       "avatar": {
         "builtin": "Встроенный аватар",

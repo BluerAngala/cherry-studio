@@ -91,6 +91,9 @@
         "failed": "無法列出 Agent。"
       }
     },
+    "review": {
+      "title": "[to be translated]:Quality Audit"
+    },
     "server": {
       "error": {
         "not_running": "API 伺服器已啟用，但運作不正常。"
@@ -4315,6 +4318,9 @@
     "general": {
       "auto_check_update": {
         "title": "自動更新"
+      },
+      "auto_review": {
+        "tip": "[to be translated]:Automatically review the quality of AI responses after they are completed"
       },
       "avatar": {
         "builtin": "內建頭像",

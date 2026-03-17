@@ -91,6 +91,9 @@
         "failed": "Nu s-a putut afișa lista de agenți."
       }
     },
+    "review": {
+      "title": "[to be translated]:Quality Audit"
+    },
     "server": {
       "error": {
         "not_running": "Serverul API este activat, dar nu rulează corect."
@@ -1725,6 +1728,7 @@
     "chunk_size_tooltip": "Împarte documentele în fragmente; dimensiunea fiecărui fragment nu trebuie să depășească limita de context a modelului",
     "chunking_strategy": "[to be translated]:Chunking Strategy",
     "chunking_strategy_tooltip": "[to be translated]:Algorithm for splitting documents. Structural is best for legal docs, Semantic for deep understanding.",
+    "citation_index": "[to be translated]:",
     "clear_selection": "Șterge selecția",
     "delete": "Șterge",
     "delete_confirm": "Ești sigur că vrei să ștergi această bază de cunoștințe?",
@@ -4314,6 +4318,9 @@
     "general": {
       "auto_check_update": {
         "title": "Actualizare automată"
+      },
+      "auto_review": {
+        "tip": "[to be translated]:Automatically review the quality of AI responses after they are completed"
       },
       "avatar": {
         "builtin": "Avatar integrat",

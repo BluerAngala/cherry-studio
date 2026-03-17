@@ -91,6 +91,9 @@
         "failed": "获取智能体列表失败"
       }
     },
+    "review": {
+      "title": "质量审查"
+    },
     "server": {
       "error": {
         "not_running": "API 服务器已启用但未正常运行。"
@@ -4315,6 +4318,9 @@
     "general": {
       "auto_check_update": {
         "title": "自动更新"
+      },
+      "auto_review": {
+        "tip": "AI 回答完成后自动进行质量审查"
       },
       "avatar": {
         "builtin": "内置头像",

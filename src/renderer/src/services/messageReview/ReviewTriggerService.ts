@@ -21,7 +21,7 @@ const logger = loggerService.withContext('ReviewTriggerService')
  * 是否为需要审查的消息
  * 只审查助手消息且内容长度大于一定阈值
  */
-function shouldReviewMessage(message: Message, _assistant: Assistant): boolean {
+function shouldReviewMessage(message: Message): boolean {
   // 只审查助手消息
   if (message.role !== 'assistant') {
     return false
@@ -44,6 +44,11 @@ function shouldReviewMessage(message: Message, _assistant: Assistant): boolean {
     return false
   }
 
+  // 检查全局设置是否启用自动审查
+  if (!state.settings.enableAutoQualityReview) {
+    return false
+  }
+
   // 检查助手设置是否启用审查
   // TODO: 添加助手级别的审查开关
 
@@ -58,7 +63,7 @@ function shouldReviewMessage(message: Message, _assistant: Assistant): boolean {
  */
 export async function triggerMessageReview(message: Message, assistant: Assistant, userQuery: string): Promise<void> {
   try {
-    if (!shouldReviewMessage(message, assistant)) {
+    if (!shouldReviewMessage(message)) {
       return
     }
 
@@ -101,6 +106,76 @@ export async function triggerMessageReview(message: Message, assistant: Assistan
     })
   } catch (error) {
     logger.error('Error triggering message review:', error as Error)
+  }
+}
+
+/**
+ * 手动触发消息审查
+ * @param message 要审查的消息
+ * @param assistant 助手配置
+ * @param userQuery 用户问题
+ */
+export async function manualTriggerMessageReview(
+  message: Message,
+  assistant: Assistant,
+  userQuery: string
+): Promise<void> {
+  try {
+    // 手动触发只需要检查是否已经是助手消息
+    if (message.role !== 'assistant') {
+      return
+    }
+
+    // 检查是否已经存在审查块
+    const state = store.getState()
+    const messageBlocks = message.blocks.map((blockId) => state.messageBlocks.entities[blockId]).filter(Boolean)
+    const hasExistingReview = messageBlocks.some((block) => block.type === MessageBlockType.REVIEW)
+
+    if (hasExistingReview) {
+      window.toast.info('该消息已经进行过质量审查')
+      return
+    }
+
+    logger.info('Starting manual message review', { messageId: message.id })
+
+    const content = getMainTextContent(message)
+
+    // 调用审查服务
+    const reviewResult = await reviewResponse({
+      userQuery,
+      assistantResponse: content,
+      assistant
+    })
+
+    if (!reviewResult) {
+      logger.warn('Review returned null result')
+      return
+    }
+
+    // 创建审查块
+    const reviewBlock = createReviewBlock(message.id, reviewResult)
+
+    // 添加到 store
+    store.dispatch(upsertOneBlock(reviewBlock))
+
+    // 更新消息的 blocks 数组
+    const updatedBlocks = [...message.blocks, reviewBlock.id]
+    store.dispatch(
+      newMessagesActions.updateMessage({
+        topicId: message.topicId,
+        messageId: message.id,
+        updates: { blocks: updatedBlocks }
+      })
+    )
+
+    logger.info('Manual message review completed', {
+      messageId: message.id,
+      overallScore: reviewResult.overallScore,
+      passed: reviewResult.passed
+    })
+  } catch (error) {
+    logger.error('Failed to trigger manual message review', error as Error)
+    window.toast.error('质量审查失败，请稍后重试')
   }
 }
 

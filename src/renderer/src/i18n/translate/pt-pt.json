@@ -91,6 +91,9 @@
         "failed": "Falha ao listar agentes."
       }
     },
+    "review": {
+      "title": "[to be translated]:Quality Audit"
+    },
     "server": {
       "error": {
         "not_running": "O servidor de API está habilitado, mas não está funcionando corretamente."
@@ -1725,6 +1728,7 @@
     "chunk_size_tooltip": "Dividir o documento em blocos, o tamanho de cada bloco, que não pode exceder o limite de contexto do modelo",
     "chunking_strategy": "[to be translated]:Chunking Strategy",
     "chunking_strategy_tooltip": "[to be translated]:Algorithm for splitting documents. Structural is best for legal docs, Semantic for deep understanding.",
+    "citation_index": "[to be translated]:",
     "clear_selection": "Limpar seleção",
     "delete": "Excluir",
     "delete_confirm": "Tem certeza de que deseja excluir este repositório de conhecimento?",
@@ -4314,6 +4318,9 @@
     "general": {
       "auto_check_update": {
         "title": "Atualização automática"
+      },
+      "auto_review": {
+        "tip": "[to be translated]:Automatically review the quality of AI responses after they are completed"
       },
       "avatar": {
         "builtin": "Avatares embutidos",
