@@ -1,6 +1,6 @@
 // import { InfoCircleOutlined } from '@ant-design/icons'
 import { loggerService } from '@logger'
-import { CopyIcon, DeleteIcon, EditIcon, RefreshIcon } from '@renderer/components/Icons'
+import { CopyIcon, DeleteIcon, EditIcon, LoadingIcon, RefreshIcon } from '@renderer/components/Icons'
 import InspectMessagePopup from '@renderer/components/Popups/InspectMessagePopup'
 import ObsidianExportPopup from '@renderer/components/Popups/ObsidianExportPopup'
 import SaveToKnowledgePopup from '@renderer/components/Popups/SaveToKnowledgePopup'
@@ -117,6 +117,7 @@ type MessageMenubarButtonContext = {
   isBubbleStyle: boolean
   isGrouped?: boolean
   isLastMessage: boolean
+  isReviewing: boolean
   isTranslating: boolean
   isUserMessage: boolean
   message: Message
@@ -154,6 +155,7 @@ const MessageMenubar: FC<Props> = (props) => {
   const { notesPath } = useNotesSettings()
   const { toggleMultiSelectMode } = useChatContext(props.topic)
   const [copied, setCopied] = useTemporaryValue(false, 2000)
+  const [isReviewing, setIsReviewing] = useState(false)
   const translationAbortKey = createTranslationAbortKey(message.id)
   // remove confirm for regenerate; tooltip stays simple
   const [showDeleteTooltip, setShowDeleteTooltip] = useState(false)
@@ -562,15 +564,22 @@ const MessageMenubar: FC<Props> = (props) => {
   const onReview = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation()
-      const state = store.getState()
-      const topicMessages: Message[] = selectMessagesForTopic(state, topic.id)
-      const relatedUserMessage = topicMessages.find((msg) => {
-        return msg.role === 'user' && message.askId === msg.id
-      })
-      const userQuery = relatedUserMessage ? getMainTextContent(relatedUserMessage) : ''
-      await manualTriggerMessageReview(message, assistant, userQuery)
+      if (isReviewing) return
+
+      setIsReviewing(true)
+      try {
+        const state = store.getState()
+        const topicMessages: Message[] = selectMessagesForTopic(state, topic.id)
+        const relatedUserMessage = topicMessages.find((msg) => {
+          return msg.role === 'user' && message.askId === msg.id
+        })
+        const userQuery = relatedUserMessage ? getMainTextContent(relatedUserMessage) : ''
+        await manualTriggerMessageReview(message, assistant, userQuery)
+      } finally {
+        setIsReviewing(false)
+      }
     },
-    [assistant, message, topic.id]
+    [assistant, message, topic.id, isReviewing]
   )
 
   const hasTranslationBlocks = useMemo(() => {
@@ -599,6 +608,7 @@ const MessageMenubar: FC<Props> = (props) => {
     isBubbleStyle,
     isGrouped,
     isLastMessage,
+    isReviewing,
     isTranslating,
     isUserMessage,
     message,
@@ -801,7 +811,7 @@ const buttonRenderers: Record<MessageMenubarButtonId, MessageMenubarButtonRender
       </Tooltip>
     )
   },
-  review: ({ isAssistantMessage, onReview, softHoverBg, t }) => {
+  review: ({ isAssistantMessage, onReview, isReviewing, softHoverBg, t }) => {
     if (!isAssistantMessage) {
       return null
     }
@@ -809,7 +819,7 @@ const buttonRenderers: Record<MessageMenubarButtonId, MessageMenubarButtonRender
     return (
       <Tooltip title={t('agent.review.title')} mouseEnterDelay={0.8}>
         <ActionButton className="message-action-button" onClick={onReview} $softHoverBg={softHoverBg}>
-          <ShieldCheck size={15} />
+          {isReviewing ? <LoadingIcon size={15} /> : <ShieldCheck size={15} />}
         </ActionButton>
       </Tooltip>
     )
