@@ -123,6 +123,8 @@ export type Provider = {
 
   // Anthropic prompt caching settings
   anthropicCacheControl?: AnthropicCacheControlSettings
+
+  order?: number
 }
 
 export const SystemProviderIdSchema = z.enum([

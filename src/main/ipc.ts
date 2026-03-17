@@ -71,7 +71,10 @@ import powerMonitorService from './services/PowerMonitorService'
 import { proxyManager } from './services/ProxyManager'
 import { pythonService } from './services/PythonService'
 import { FileServiceManager } from './services/remotefile/FileServiceManager'
-import { searchService } from './services/SearchService'
+import { migrationV2Service } from './services/MigrationV2Service'
+ import { llmProviderService } from './services/LlmProviderService'
+ import { fileMetadataService } from './services/FileMetadataService'
+ import { searchService } from './services/SearchService'
 import { SelectionService } from './services/SelectionService'
 import { registerShortcuts, unregisterAllShortcuts } from './services/ShortcutService'
 import {
@@ -979,6 +982,21 @@ export async function registerIpc(mainWindow: BrowserWindow, app: Electron.App) 
   })
   // API Server
   apiServerService.registerIpcHandlers()
+
+  // Migration V2
+  migrationV2Service.registerIpcHandler()
+
+  // LLM Providers V2
+  ipcMain.handle(IpcChannel.LlmProvider_GetProviders, () => llmProviderService.getProviders())
+  ipcMain.handle(IpcChannel.LlmProvider_UpdateProvider, (_, id, data) => llmProviderService.updateProvider(id, data))
+  ipcMain.handle(IpcChannel.LlmProvider_AddProvider, (_, provider) => llmProviderService.addProvider(provider))
+  ipcMain.handle(IpcChannel.LlmProvider_RemoveProvider, (_, id) => llmProviderService.removeProvider(id))
+
+  // File Metadata V2
+  ipcMain.handle(IpcChannel.FileMetadata_GetFiles, () => fileMetadataService.getFiles())
+  ipcMain.handle(IpcChannel.FileMetadata_AddFile, (_, file) => fileMetadataService.addFile(file))
+  ipcMain.handle(IpcChannel.FileMetadata_DeleteFile, (_, id) => fileMetadataService.deleteFile(id))
+  ipcMain.handle(IpcChannel.FileMetadata_UpdateCount, (_, id, count) => fileMetadataService.updateFileCount(id, count))
 
   // Anthropic OAuth
   ipcMain.handle(IpcChannel.Anthropic_StartOAuthFlow, () => anthropicService.startOAuthFlow())

@@ -17,11 +17,14 @@ class FileManager {
     const fileRecord = await db.files.get(file.id)
 
     if (fileRecord) {
-      await db.files.update(fileRecord.id, { ...fileRecord, count: fileRecord.count + 1 })
+      const newCount = fileRecord.count + 1
+      await db.files.update(fileRecord.id, { ...fileRecord, count: newCount })
+      await window.electron.ipcRenderer.invoke(IpcChannel.FileMetadata_UpdateCount, fileRecord.id, newCount)
       return fileRecord
     }
 
     await db.files.add(file)
+    await window.electron.ipcRenderer.invoke(IpcChannel.FileMetadata_AddFile, file)
 
     return file
   }
@@ -104,12 +107,15 @@ class FileManager {
 
     if (!force) {
       if (file.count > 1) {
-        await db.files.update(id, { ...file, count: file.count - 1 })
+        const newCount = file.count - 1
+        await db.files.update(id, { ...file, count: newCount })
+        await window.electron.ipcRenderer.invoke(IpcChannel.FileMetadata_UpdateCount, id, newCount)
         return
       }
     }
 
     await db.files.delete(id)
+    await window.electron.ipcRenderer.invoke(IpcChannel.FileMetadata_DeleteFile, id)
 
     try {
       await window.api.file.delete(id + file.ext)

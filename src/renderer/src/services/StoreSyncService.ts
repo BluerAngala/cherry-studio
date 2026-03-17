@@ -112,9 +112,47 @@ export class StoreSyncService {
 
     window.api.storeSync.subscribe()
 
+    // Sync initial state from main process
+    this.syncInitialState()
+
     window.addEventListener('beforeunload', () => {
       this.unsubscribe()
     })
+  }
+
+  /**
+   * Sync initial state from main process
+   */
+  public async syncInitialState(): Promise<void> {
+    try {
+      const initialState = await window.electron.ipcRenderer.invoke(IpcChannel.StoreSync_GetInitialState)
+      if (initialState && window.store) {
+        // Sync settings
+        if (initialState.settings) {
+          Object.entries(initialState.settings).forEach(([key, value]) => {
+            if (key.startsWith('app:')) {
+              const settingKey = key.replace('app:', '')
+              window.store.dispatch({
+                type: `settings/set${settingKey.charAt(0).toUpperCase()}${settingKey.slice(1)}`,
+                payload: value,
+                meta: { fromSync: true }
+              })
+            }
+          })
+        }
+        
+        // Sync providers
+        if (initialState.llm?.providers) {
+          window.store.dispatch({
+            type: 'llm/updateProviders',
+            payload: initialState.llm.providers,
+            meta: { fromSync: true }
+          })
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to sync initial state:', error as Error)
+    }
   }
 
   /**

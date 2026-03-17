@@ -22,21 +22,35 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { defineConfig } from 'drizzle-kit'
-import { app } from 'electron'
 
 function getDbPath() {
   if (process.env.NODE_ENV === 'development') {
     return path.join(os.homedir(), '.cherrystudio', 'data', 'agents.db')
   }
-  return path.join(app.getPath('userData'), 'Data', 'agents.db')
+  // In production, app.getPath is handled by the application code, not by drizzle-kit
+  return 'agents.db'
 }
 
 export function getOldDbPath() {
-  // production
-  return path.join(app.getPath('userData'), 'agents.db')
+  // This is only used in main process during migration
+  try {
+    const { app } = require('electron')
+    return path.join(app.getPath('userData'), 'agents.db')
+  } catch (e) {
+    return 'agents.db'
+  }
 }
 
-const resolvedDbPath = getDbPath()
+function getProdDbPath() {
+  try {
+    const { app } = require('electron')
+    return path.join(app.getPath('userData'), 'Data', 'agents.db')
+  } catch (e) {
+    return 'agents.db'
+  }
+}
+
+const resolvedDbPath = process.env.NODE_ENV === 'development' ? getDbPath() : getProdDbPath()
 
 export const dbPath = resolvedDbPath
 

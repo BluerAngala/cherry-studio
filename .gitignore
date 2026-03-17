@@ -106,3 +106,5 @@ packages/sensevoice-server/models/**/*.onnx
 
 tests/**/*
 test
+
+*.sql

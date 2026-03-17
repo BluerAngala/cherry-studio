@@ -17,16 +17,12 @@
 import { IpcChannel } from '@shared/IpcChannel'
 import type { StoreSyncAction } from '@types'
 import { BrowserWindow, ipcMain } from 'electron'
+import { settingService } from './SettingService'
+import { llmProviderService } from './LlmProviderService'
 
 /**
  * StoreSyncService class manages Redux store synchronization between multiple windows in the main process
  * It uses singleton pattern to ensure only one sync service instance exists in the application
- *
- * Main features:
- * 1. Manages window subscriptions for store sync
- * 2. Handles IPC communication for store sync between windows
- * 3. Broadcasts Redux actions from one window to all other windows
- * 4. Adds metadata to synced actions to prevent infinite sync loops
  */
 export class StoreSyncService {
   private static instance: StoreSyncService
@@ -49,7 +45,6 @@ export class StoreSyncService {
 
   /**
    * Subscribe a window to store sync
-   * @param windowId ID of the window to subscribe
    */
   public subscribe(windowId: number): void {
     if (!this.windowIds.includes(windowId)) {
@@ -59,7 +54,6 @@ export class StoreSyncService {
 
   /**
    * Unsubscribe a window from store sync
-   * @param windowId ID of the window to unsubscribe
    */
   public unsubscribe(windowId: number): void {
     this.windowIds = this.windowIds.filter((id) => id !== windowId)
@@ -67,10 +61,6 @@ export class StoreSyncService {
 
   /**
    * Sync an action to all renderer windows
-   * @param type Action type, like 'settings/setTray'
-   * @param payload Action payload
-   *
-   * NOTICE: DO NOT use directly in ConfigManager, may cause infinite sync loop
    */
   public syncToRenderer(type: string, payload: any): void {
     const action: StoreSyncAction = {
@@ -78,13 +68,12 @@ export class StoreSyncService {
       payload
     }
 
-    //-1 means the action is from the main process, will be broadcast to all windows
+    // -1 means the action is from the main process
     this.broadcastToOtherWindows(-1, action)
   }
 
   /**
    * Register IPC handlers for store sync communication
-   * Handles window subscription, unsubscription and action broadcasting
    */
   public registerIpcHandler(): void {
     if (this.isIpcHandlerRegistered) return
@@ -103,35 +92,73 @@ export class StoreSyncService {
       }
     })
 
-    ipcMain.handle(IpcChannel.StoreSync_OnUpdate, (event, action: StoreSyncAction) => {
+    ipcMain.handle(IpcChannel.StoreSync_OnUpdate, async (event, action: StoreSyncAction) => {
       const sourceWindowId = BrowserWindow.fromWebContents(event.sender)?.id
 
       if (!sourceWindowId) return
 
+      // Persistent storage handling for specific slices
+      await this.handlePersistence(action)
+
       // Broadcast the action to all other windows
       this.broadcastToOtherWindows(sourceWindowId, action)
+    })
+
+    ipcMain.handle(IpcChannel.StoreSync_GetInitialState, async () => {
+      const settings = await settingService.getAllSettings()
+      const providers = await llmProviderService.getProviders()
+      
+      return {
+        settings,
+        llm: { providers }
+      }
     })
 
     this.isIpcHandlerRegistered = true
   }
 
   /**
+   * Handle persistence for incoming actions
+   */
+  private async handlePersistence(action: StoreSyncAction): Promise<void> {
+    const { type, payload } = action
+
+    // Handle Settings
+    if (type.startsWith('settings/')) {
+      const settingKey = type.replace('settings/', '')
+      await settingService.setSetting(`app:${settingKey}`, payload)
+    }
+
+    // Handle LLM Providers
+    if (type.startsWith('llm/')) {
+      const actionType = type.replace('llm/', '')
+      switch (actionType) {
+        case 'updateProvider':
+          await llmProviderService.updateProvider(payload.id, payload, false)
+          break
+        case 'addProvider':
+          await llmProviderService.addProvider(payload, false)
+          break
+        case 'removeProvider':
+          await llmProviderService.removeProvider(payload.id, false)
+          break
+      }
+    }
+  }
+
+  /**
    * Broadcast a Redux action to all other windows except the source
-   * @param sourceWindowId ID of the window that originated the action
-   * @param action Redux action to broadcast
    */
   private broadcastToOtherWindows(sourceWindowId: number, action: StoreSyncAction): void {
-    // Add metadata to indicate this action came from sync
     const syncAction = {
       ...action,
       meta: {
         ...action.meta,
         fromSync: true,
-        source: `windowId:${sourceWindowId}`
+        source: sourceWindowId === -1 ? 'main' : `windowId:${sourceWindowId}`
       }
     }
 
-    // Send to all windows except the source
     this.windowIds.forEach((windowId) => {
       if (windowId !== sourceWindowId) {
         const targetWindow = BrowserWindow.fromId(windowId)
@@ -145,5 +172,4 @@ export class StoreSyncService {
   }
 }
 
-// Export singleton instance
 export default StoreSyncService.getInstance()

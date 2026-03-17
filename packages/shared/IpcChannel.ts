@@ -293,6 +293,24 @@ export enum IpcChannel {
   StoreSync_Unsubscribe = 'store-sync:unsubscribe',
   StoreSync_OnUpdate = 'store-sync:on-update',
   StoreSync_BroadcastSync = 'store-sync:broadcast-sync',
+  StoreSync_GetInitialState = 'store-sync:get-initial-state',
+
+  // Migration V2
+  MigrationV2_Start = 'migration-v2:start',
+  MigrationV2_GetStatus = 'migration-v2:get-status',
+  MigrationV2_Progress = 'migration-v2:progress',
+
+  // LLM Providers (V2)
+  LlmProvider_GetProviders = 'llm-provider:get-providers',
+  LlmProvider_UpdateProvider = 'llm-provider:update-provider',
+  LlmProvider_AddProvider = 'llm-provider:add-provider',
+  LlmProvider_RemoveProvider = 'llm-provider:remove-provider',
+
+  // File Metadata (V2)
+  FileMetadata_GetFiles = 'file-metadata:get-files',
+  FileMetadata_AddFile = 'file-metadata:add-file',
+  FileMetadata_DeleteFile = 'file-metadata:delete-file',
+  FileMetadata_UpdateCount = 'file-metadata:update-count',
 
   // Provider
   Provider_AddKey = 'provider:add-key',

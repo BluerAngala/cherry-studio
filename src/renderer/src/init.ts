@@ -4,7 +4,22 @@ import { startAutoSync } from './services/BackupService'
 import { startNutstoreAutoSync } from './services/NutstoreService'
 import storeSyncService from './services/StoreSyncService'
 import { webTraceService } from './services/WebTraceService'
+import { migrationV2Service } from './services/MigrationV2Service'
 import store from './store'
+
+function initMigrationV2() {
+  // Wait for store to be rehydrated and then start migration
+  // We use a small delay to ensure everything is settled
+  setTimeout(async () => {
+    const isMigrated = localStorage.getItem('cherry_v2_migrated')
+    if (!isMigrated) {
+      const success = await migrationV2Service.startMigration(store.getState())
+      if (success) {
+        localStorage.setItem('cherry_v2_migrated', 'true')
+      }
+    }
+  }, 2000)
+}
 
 function initKeyv() {
   window.keyv = new KeyvStorage()
@@ -36,3 +51,4 @@ initKeyv()
 initAutoSync()
 initStoreSync()
 initWebTrace()
+initMigrationV2()
