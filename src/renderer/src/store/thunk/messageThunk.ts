@@ -17,7 +17,7 @@
 import { loggerService } from '@logger'
 import { AiSdkToChunkAdapter } from '@renderer/aiCore/chunk/AiSdkToChunkAdapter'
 import { AgentApiClient } from '@renderer/api/agent'
-import db from '@renderer/databases'
+// import db from '@renderer/databases'
 import { fetchMessagesSummary, transformMessagesAndFetch } from '@renderer/services/ApiService'
 import { dbService } from '@renderer/services/db'
 import { DbService } from '@renderer/services/db/DbService'
@@ -488,7 +488,7 @@ export const cleanupMultipleBlocks = (dispatch: AppDispatch, blockIds: string[])
   })
 
   const getBlocksFiles = async (blockIds: string[]) => {
-    const blocks = await db.message_blocks.where('id').anyOf(blockIds).toArray()
+    const blocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetMessageBlocks, blockIds)
     const files = blocks
       .filter((block) => block.type === MessageBlockType.FILE || block.type === MessageBlockType.IMAGE)
       .map((block) => block.file)
@@ -743,12 +743,12 @@ const dispatchMultiModelResponses = async (
     tasksToQueue.push({ assistantConfig: assistantForThisMention, messageStub: assistantMessage })
   }
 
-  const topicFromDB = await db.topics.get(topicId)
+  const topicFromDB = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
   if (topicFromDB) {
     const currentTopicMessageIds = getState().messages.messageIdsByTopic[topicId] || []
     const currentEntities = getState().messages.entities
     const messagesToSaveInDB = currentTopicMessageIds.map((id) => currentEntities[id]).filter((m): m is Message => !!m)
-    await db.topics.update(topicId, { messages: messagesToSaveInDB })
+    await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, messagesToSaveInDB)
   } else {
     logger.error(`[dispatchMultiModelResponses] Topic ${topicId} not found in DB during multi-model save.`)
     throw new Error(`Topic ${topicId} not found in DB.`)
@@ -1236,11 +1236,11 @@ export const resendMessageThunk =
       cleanupMultipleBlocks(dispatch, allBlockIdsToDelete)
 
       try {
-        if (allBlockIdsToDelete.length > 0) {
-          await db.message_blocks.bulkDelete(allBlockIdsToDelete)
-        }
         const finalMessagesToSave = selectMessagesForTopic(getState(), topicId)
-        await db.topics.update(topicId, { messages: finalMessagesToSave })
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, finalMessagesToSave)
+        if (allBlockIdsToDelete.length > 0) {
+          await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, allBlockIdsToDelete)
+        }
       } catch (dbError) {
         logger.error('[resendMessageThunk] Error updating database:', dbError as Error)
       }
@@ -1359,13 +1359,10 @@ export const regenerateAssistantResponseThunk =
       // Use the selector to get the final ordered list of messages for the topic
       const finalMessagesToSave = selectMessagesForTopic(getState(), topicId)
 
-      await db.transaction('rw', db.topics, db.message_blocks, async () => {
-        // Use the result from the selector to update the DB
-        await db.topics.update(topicId, { messages: finalMessagesToSave })
-        if (blockIdsToDelete.length > 0) {
-          await db.message_blocks.bulkDelete(blockIdsToDelete)
-        }
-      })
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, finalMessagesToSave)
+      if (blockIdsToDelete.length > 0) {
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, blockIdsToDelete)
+      }
 
       // 8. Add fetch/process call to the queue
       const queue = getTopicQueue(topicId)
@@ -1440,10 +1437,8 @@ export const initiateTranslationThunk =
       // Get the final message list from Redux state *after* updates
       const finalMessagesToSave = selectMessagesForTopic(getState(), topicId)
 
-      await db.transaction('rw', db.topics, db.message_blocks, async () => {
-        await db.message_blocks.put(newBlock) // Save the initial block
-        await db.topics.update(topicId, { messages: finalMessagesToSave }) // Save updated message list
-      })
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutMessageBlocks, [newBlock]) // Save the initial block
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, finalMessagesToSave) // Save updated message list
       return newBlock.id // Return the ID
     } catch (error) {
       logger.error(`[initiateTranslationThunk] Failed for message ${messageId}:`, error as Error)
@@ -1682,17 +1677,11 @@ export const cloneMessagesToNewTopicThunk =
         clonedMessages.push(newMessage)
       }
 
-      // 5. Update Database (Atomic Transaction)
-      await db.transaction('rw', db.topics, db.message_blocks, async () => {
-        // Update the NEW topic with the cloned messages
-        // Assumes topic entry was added by caller, so we UPDATE.
-        await db.topics.put({ id: newTopic.id, messages: clonedMessages })
-
-        // Add the NEW blocks
-        if (clonedBlocks.length > 0) {
-          await bulkAddBlocks(clonedBlocks)
-        }
-      })
+      // 5. Update Database
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, newTopic.id, clonedMessages)
+      if (clonedBlocks.length > 0) {
+        await bulkAddBlocks(clonedBlocks)
+      }
 
       // Update file counts (outside of Dexie transaction since it uses IPC now)
       const uniqueFiles = [...new Map(filesToUpdateCount.map((f) => [f.id, f])).values()]
@@ -1794,12 +1783,10 @@ export const removeBlocksThunk =
       } else {
         // For Dexie topics: use transaction for atomicity
         const finalMessagesToSave = selectMessagesForTopic(getState(), topicId)
-        await db.transaction('rw', db.topics, db.message_blocks, async () => {
-          await db.topics.update(topicId, { messages: finalMessagesToSave })
-          if (blockIdsToRemove.length > 0) {
-            await db.message_blocks.bulkDelete(blockIdsToRemove)
-          }
-        })
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, finalMessagesToSave)
+      if (blockIdsToRemove.length > 0) {
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, blockIdsToRemove)
+      }
       }
 
       dispatch(updateTopicUpdatedAt({ topicId }))

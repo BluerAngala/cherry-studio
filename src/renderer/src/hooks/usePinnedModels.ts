@@ -1,6 +1,6 @@
 import { loggerService } from '@logger'
-import db from '@renderer/databases'
 import { getModelUniqId } from '@renderer/services/ModelService'
+import { IpcChannel } from '@shared/IpcChannel'
 import { sortBy } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -16,7 +16,7 @@ export const usePinnedModels = () => {
   useEffect(() => {
     const loadPinnedModels = async () => {
       setLoading(true)
-      const setting = await db.settings.get('pinned:models')
+      const setting = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'pinned:models')
       const savedPinnedModels = setting?.value || []
 
       // Filter out invalid pinned models
@@ -25,7 +25,7 @@ export const usePinnedModels = () => {
 
       // Update storage if there were invalid models
       if (validPinnedModels.length !== savedPinnedModels.length) {
-        await db.settings.put({ id: 'pinned:models', value: validPinnedModels })
+        await window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'pinned:models', value: validPinnedModels })
       }
 
       setPinnedModels(sortBy(validPinnedModels))
@@ -40,7 +40,7 @@ export const usePinnedModels = () => {
   }, [providers])
 
   const updatePinnedModels = useCallback(async (models: string[]) => {
-    await db.settings.put({ id: 'pinned:models', value: models })
+    await window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'pinned:models', value: models })
     setPinnedModels(sortBy(models))
   }, [])
 

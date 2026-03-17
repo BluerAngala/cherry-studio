@@ -50,6 +50,7 @@ import CherryINOAuthService from './services/CherryINOAuthService'
 import { codeToolsService } from './services/CodeToolsService'
 import { ConfigKeys, configManager } from './services/ConfigManager'
 import CopilotService from './services/CopilotService'
+import { dataItemService } from './services/DataItemService'
 import DxtService from './services/DxtService'
 import { ExportService } from './services/ExportService'
 import { externalAppsService } from './services/ExternalAppsService'
@@ -92,6 +93,7 @@ import {
 } from './services/SpanCacheService'
 import storeSyncService from './services/StoreSyncService'
 import { themeService } from './services/ThemeService'
+import { topicMessageService } from './services/TopicMessageService'
 import VertexAIService from './services/VertexAIService'
 import { setOpenLinkExternal } from './services/WebviewService'
 import { windowService } from './services/WindowService'
@@ -999,6 +1001,30 @@ export async function registerIpc(mainWindow: BrowserWindow, app: Electron.App) 
   ipcMain.handle(IpcChannel.FileMetadata_UpdateFile, (_, file) => fileMetadataService.updateFile(file))
   ipcMain.handle(IpcChannel.FileMetadata_DeleteFile, (_, id) => fileMetadataService.deleteFile(id))
   ipcMain.handle(IpcChannel.FileMetadata_UpdateCount, (_, id, count) => fileMetadataService.updateFileCount(id, count))
+
+  // Topic Messages V2
+  ipcMain.handle(IpcChannel.TopicMessage_GetTopic, (_, topicId) => topicMessageService.getTopic(topicId))
+  ipcMain.handle(IpcChannel.TopicMessage_GetAllTopics, () => topicMessageService.getAllTopics())
+  ipcMain.handle(IpcChannel.TopicMessage_GetMessageBlocks, (_, messageIds) =>
+    topicMessageService.getMessageBlocks(messageIds)
+  )
+  ipcMain.handle(IpcChannel.TopicMessage_GetAllMessageBlocks, () => topicMessageService.getAllMessageBlocks())
+  ipcMain.handle(IpcChannel.TopicMessage_PutTopic, (_, topicId, messages) =>
+    topicMessageService.putTopic(topicId, messages)
+  )
+  ipcMain.handle(IpcChannel.TopicMessage_DeleteTopic, (_, topicId) => topicMessageService.deleteTopic(topicId))
+  ipcMain.handle(IpcChannel.TopicMessage_PutMessageBlocks, (_, blocks) => topicMessageService.putMessageBlocks(blocks))
+  ipcMain.handle(IpcChannel.TopicMessage_DeleteMessageBlocks, (_, blockIds) =>
+    topicMessageService.deleteMessageBlocks(blockIds)
+  )
+
+  // Data Items V2
+  ipcMain.handle(IpcChannel.DataItem_GetKnowledgeNote, (_, id) => dataItemService.getKnowledgeNote(id))
+  ipcMain.handle(IpcChannel.DataItem_PutKnowledgeNote, (_, note) => dataItemService.putKnowledgeNote(note))
+  ipcMain.handle(IpcChannel.DataItem_DeleteKnowledgeNote, (_, id) => dataItemService.deleteKnowledgeNote(id))
+  ipcMain.handle(IpcChannel.DataItem_GetAllQuickPhrases, () => dataItemService.getAllQuickPhrases())
+  ipcMain.handle(IpcChannel.DataItem_PutQuickPhrase, (_, phrase) => dataItemService.putQuickPhrase(phrase))
+  ipcMain.handle(IpcChannel.DataItem_DeleteQuickPhrase, (_, id) => dataItemService.deleteQuickPhrase(id))
 
   // Anthropic OAuth
   ipcMain.handle(IpcChannel.Anthropic_StartOAuthFlow, () => anthropicService.startOAuthFlow())

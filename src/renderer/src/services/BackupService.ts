@@ -1,6 +1,4 @@
 import { loggerService } from '@logger'
-import db from '@renderer/databases'
-import { upgradeToV7, upgradeToV8 } from '@renderer/databases/upgrades'
 import i18n from '@renderer/i18n'
 import store from '@renderer/store'
 import { setLocalBackupSyncState, setS3SyncState, setWebDAVSyncState } from '@renderer/store/backup'
@@ -9,6 +7,8 @@ import { uuid } from '@renderer/utils'
 import dayjs from 'dayjs'
 
 import { NotificationService } from './NotificationService'
+import { IpcChannel } from '@shared/IpcChannel'
+
 
 const logger = loggerService.withContext('BackupService')
 
@@ -837,10 +837,10 @@ export async function handleData(data: Record<string, any>) {
 
     for (const { key, value } of data.indexedDB) {
       if (key.startsWith('topic:')) {
-        await db.table('topics').add({ id: value.id, messages: value.messages })
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, value.id, value.messages)
       }
       if (key === 'image://avatar') {
-        await db.table('settings').add({ id: key, value })
+        await window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: key, value })
       }
     }
 
@@ -861,16 +861,16 @@ export async function handleData(data: Record<string, any>) {
     await restoreDatabase(data.indexedDB)
 
     if (data.version === 3) {
-      await db.transaction('rw', db.tables, async (tx) => {
-        await db.table('message_blocks').clear()
-        await upgradeToV7(tx)
-      })
+      // await db.transaction('rw', db.tables, async (tx) => {
+      //   await db.table('message_blocks').clear()
+      //   await upgradeToV7(tx)
+      // })
     }
 
     if (data.version === 4) {
-      await db.transaction('rw', db.tables, async (tx) => {
-        await upgradeToV8(tx)
-      })
+      // await db.transaction('rw', db.tables, async (tx) => {
+      //   await upgradeToV8(tx)
+      // })
     }
 
     window.toast.success(i18n.t('message.restore.success'))
@@ -882,7 +882,7 @@ export async function handleData(data: Record<string, any>) {
 }
 
 async function backupDatabase() {
-  const tables = db.tables
+  const tables = [] // db.tables
   const backup = {}
 
   for (const table of tables) {
@@ -893,22 +893,22 @@ async function backupDatabase() {
 }
 
 async function restoreDatabase(backup: Record<string, any>) {
-  await db.transaction('rw', db.tables, async () => {
-    for (const tableName in backup) {
-      await db.table(tableName).clear()
-      await db.table(tableName).bulkAdd(backup[tableName])
-    }
-  })
+  // await db.transaction('rw', db.tables, async () => {
+  //   for (const tableName of Object.keys(backup)) {
+  //     await db.table(tableName).clear()
+  //     await db.table(tableName).bulkAdd(backup[tableName])
+  //   }
+  // })
 }
 
 async function clearDatabase() {
-  const storeNames = await db.tables.map((table) => table.name)
+  const storeNames = [] // await db.tables.map((table) => table.name)
 
-  await db.transaction('rw', db.tables, async () => {
-    for (const storeName of storeNames) {
-      await db[storeName].clear()
-    }
-  })
+  // await db.transaction('rw', db.tables, async () => {
+  //   for (const storeName of storeNames) {
+  //     await db[storeName].clear()
+  //   }
+  // })
 }
 
 /**

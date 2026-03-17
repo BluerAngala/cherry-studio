@@ -6,7 +6,6 @@ import ObsidianExportPopup from '@renderer/components/Popups/ObsidianExportPopup
 import PromptPopup from '@renderer/components/Popups/PromptPopup'
 import SaveToKnowledgePopup from '@renderer/components/Popups/SaveToKnowledgePopup'
 import { isMac } from '@renderer/config/constant'
-import { db } from '@renderer/databases'
 import { useAssistant, useAssistants } from '@renderer/hooks/useAssistant'
 import { useInPlaceEdit } from '@renderer/hooks/useInPlaceEdit'
 import { useNotesSettings } from '@renderer/hooks/useNotesSettings'
@@ -32,6 +31,7 @@ import {
   exportTopicToNotion,
   topicToMarkdown
 } from '@renderer/utils/export'
+import { IpcChannel } from '@shared/IpcChannel'
 import type { MenuProps } from 'antd'
 import { Dropdown, Tooltip } from 'antd'
 import type { ItemType, MenuItemType } from 'antd/es/menu/interface'
@@ -152,7 +152,7 @@ export const Topics: React.FC<Props> = ({ assistant: _assistant, activeTopic, se
       e.stopPropagation()
       if (assistant.topics.length === 1) {
         const newTopic = getDefaultTopic(assistant.id)
-        await db.topics.add({ id: newTopic.id, messages: [] })
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, newTopic.id, [])
         addTopic(newTopic)
         setActiveTopic(newTopic)
       } else {

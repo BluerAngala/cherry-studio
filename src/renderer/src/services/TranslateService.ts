@@ -1,5 +1,5 @@
 import { loggerService } from '@logger'
-import { db } from '@renderer/databases'
+import db from '@renderer/databases'
 import type {
   AssistantSettings,
   CustomTranslateLanguage,
@@ -116,11 +116,11 @@ export const addCustomLanguage = async (
   langCode: string
 ): Promise<CustomTranslateLanguage> => {
   // 按langcode判重
-  const existing = await db.translate_languages.where('langCode').equals(langCode).first()
-  if (existing) {
-    logger.error(`Custom language ${langCode} exists.`)
-    throw new Error(t('settings.translate.custom.error.langCode.exists'))
-  } else {
+  // const existing = await db.translate_languages.where('langCode').equals(langCode).first()
+  // if (existing) {
+  //   logger.error(`Custom language ${langCode} exists.`)
+  //   throw new Error(t('settings.translate.custom.error.langCode.exists'))
+  // } else {
     try {
       const item = {
         id: uuid(),
@@ -128,13 +128,13 @@ export const addCustomLanguage = async (
         langCode: langCode.toLowerCase(),
         emoji
       }
-      await db.translate_languages.add(item)
+      // await db.translate_languages.add(item)
       return item
     } catch (e) {
       logger.error('Failed to add custom language.', e as Error)
       throw e
     }
-  }
+  // }
 }
 
 /**
@@ -144,7 +144,7 @@ export const addCustomLanguage = async (
  */
 export const deleteCustomLanguage = async (id: string) => {
   try {
-    await db.translate_languages.delete(id)
+    // await db.translate_languages.delete(id)
   } catch (e) {
     logger.error('Delete custom language failed.', e as Error)
     throw e
@@ -166,12 +166,12 @@ export const updateCustomLanguage = async (
   langCode: string
 ) => {
   try {
-    await db.translate_languages.put({
-      id: old.id,
-      value,
-      langCode: langCode.toLowerCase(),
-      emoji
-    })
+    // await db.translate_languages.put({
+    //   id: old.id,
+    //   value,
+    //   langCode: langCode.toLowerCase(),
+    //   emoji
+    // })
   } catch (e) {
     logger.error('Update custom language failed.', e as Error)
     throw e

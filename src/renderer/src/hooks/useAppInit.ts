@@ -2,7 +2,6 @@ import { loggerService } from '@logger'
 import { isMac } from '@renderer/config/constant'
 import { isLocalAi } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import db from '@renderer/databases'
 import i18n, { setDayjsLocale } from '@renderer/i18n'
 import KnowledgeQueue from '@renderer/queue/KnowledgeQueue'
 import MemoryService from '@renderer/services/MemoryService'
@@ -18,7 +17,7 @@ import { delay, runAsyncFunction } from '@renderer/utils'
 import { checkDataLimit } from '@renderer/utils'
 import { defaultLanguage } from '@shared/config/constant'
 import { IpcChannel } from '@shared/IpcChannel'
-import { useLiveQuery } from 'dexie-react-hooks'
+import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -46,7 +45,10 @@ export function useAppInit() {
   const { isLeftNavbar } = useNavbarPosition()
   const { minappShow } = useRuntime()
   const { setDefaultModel, setQuickModel, setTranslateModel } = useDefaultModel()
-  const avatar = useLiveQuery(() => db.settings.get('image://avatar'))
+  const { data: avatar } = useQuery({
+    queryKey: ['avatar'],
+    queryFn: () => window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'image://avatar')
+  })
   const { theme } = useTheme()
   const memoryConfig = useAppSelector(selectMemoryConfig)
 

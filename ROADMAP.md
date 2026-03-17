@@ -55,20 +55,22 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 
 #### 核心架构演进 (P0)
 
-- [ ] **统一数据层迁移 (Breaking Change)**
+- [x] **统一数据层迁移 (Breaking Change)**
   - [x] 配置与大模型提供商 (`SettingService`, `LlmProviderService`) 迁移
   - [x] 文件元数据 (`FileManager`, `db.files`) 脱离 Dexie 迁移至 IPC
-  - [ ] 会话与消息记录 (`DexieMessageDataSource`) 核心迁移
-  - [ ] 知识库与词条 (`Knowledge`, `QuickPhrase`) 迁移
-  - [ ] 全面废弃渲染进程 Dexie (IndexedDB) 和 Redux-Persist
+  - [x] 会话与消息记录 (`DexieMessageDataSource`, `db.topics`, `db.message_blocks`) 核心迁移
+  - [x] 知识库与词条 (`Knowledge`, `QuickPhrase`) 迁移
+  - [x] 全面废弃渲染进程 Dexie (IndexedDB) 和 Redux-Persist
   - [x] 全面转向主进程 **LibSQL + Drizzle ORM** 架构
   - [x] 实现主进程到渲染进程的标准化数据同步流 (StoreSyncService)
 - [x] **底层大模型引擎重构 (aiCore)**
   - [x] 基于 Vercel AI SDK v5 构建统一模型抽象层
   - [x] 清理旧版冗余 Provider，实现按需加载与动态导入
-- [ ] **核心 Provider 迁移 (Phase 1: OpenAI)**
-  - [ ] 迁移 `models()` 与 `getEmbeddingDimensions()` 至新架构
+- [ ] **核心 Provider 迁移 (Phase 1: OpenAI)** ⏳ **部分完成**
+  - [x] 新架构 Provider 定义（`packages/aiCore` 中基于 `@ai-sdk/openai`）
+  - [ ] 迁移 `models()` 与 `getEmbeddingDimensions()` 至新架构（当前仍代理到旧版）
   - [ ] 验证流式响应、工具调用与 Token 计费的一致性
+  - [ ] 完全废弃旧版 `OpenAIBaseClient`
 - [ ] **OpenCode Agent 架构重构**
   - [ ] 基于 `@opencode-ai/sdk` 统一 Agent 生命周期管理
   - [ ] 支持多 Agent 协作模式与能力动态扩展
@@ -221,7 +223,7 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 
 - [x] **统一数据层迁移**：废弃渲染进程 Dexie/Redux-Persist，全面转向主进程 LibSQL + Drizzle
 - [x] **数据同步机制**：建立主进程到渲染进程的单向/双向数据同步流 (StoreSyncService 增强)
-- [ ] **AI Core 完整适配**：将所有 LLM Provider 迁移至基于 Vercel AI SDK v5 的 `packages/aiCore`
+- [ ] **AI Core 完整适配**：将所有 LLM Provider 迁移至基于 Vercel AI SDK v5 的 `packages/aiCore` ⏳ **OpenAI 部分完成**
 - [ ] **插件引擎基础**：实现基于钩子 (Hooks) 的插件加载与生命周期管理机制
 
 ### 🟡 P1: 智能搜索与法律业务增强 (2026 Q4)

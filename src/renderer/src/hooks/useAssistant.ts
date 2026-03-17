@@ -6,7 +6,6 @@ import {
   MODEL_SUPPORTED_OPTIONS,
   MODEL_SUPPORTED_REASONING_EFFORT
 } from '@renderer/config/models'
-import { db } from '@renderer/databases'
 import { getDefaultTopic } from '@renderer/services/AssistantService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
 import {
@@ -26,7 +25,9 @@ import {
 } from '@renderer/store/assistants'
 import { setDefaultModel, setQuickModel, setTranslateModel } from '@renderer/store/llm'
 import type { Assistant, AssistantSettings, Model, ThinkingOption, Topic } from '@renderer/types'
+import type { Message } from '@renderer/types/newMessage'
 import { uuid } from '@renderer/utils'
+import { IpcChannel } from '@shared/IpcChannel'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -156,21 +157,18 @@ export function useAssistant(id: string) {
       TopicManager.removeTopic(topic.id)
       dispatch(removeTopic({ assistantId: assistant.id, topic }))
     },
-    moveTopic: (topic: Topic, toAssistant: Assistant) => {
+    moveTopic: async (topic: Topic, toAssistant: Assistant) => {
       dispatch(addTopic({ assistantId: toAssistant.id, topic: { ...topic, assistantId: toAssistant.id } }))
       dispatch(removeTopic({ assistantId: assistant.id, topic }))
       // update topic messages in database
-      db.topics
-        .where('id')
-        .equals(topic.id)
-        .modify((dbTopic) => {
-          if (dbTopic.messages) {
-            dbTopic.messages = dbTopic.messages.map((message) => ({
-              ...message,
-              assistantId: toAssistant.id
-            }))
-          }
-        })
+      const dbTopic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topic.id)
+      if (dbTopic && dbTopic.messages) {
+        dbTopic.messages = dbTopic.messages.map((message: Message) => ({
+          ...message,
+          assistantId: toAssistant.id
+        }))
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topic.id, dbTopic.messages)
+      }
     },
     updateTopic: (topic: Topic) => dispatch(updateTopic({ assistantId: assistant.id, topic })),
     updateTopics: (topics: Topic[]) => dispatch(updateTopics({ assistantId: assistant.id, topics })),

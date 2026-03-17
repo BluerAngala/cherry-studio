@@ -314,6 +314,24 @@ export enum IpcChannel {
   FileMetadata_DeleteFile = 'file-metadata:delete-file',
   FileMetadata_UpdateCount = 'file-metadata:update-count',
 
+  // Topic Messages (V2)
+  TopicMessage_GetTopic = 'topic-message:get-topic',
+  TopicMessage_GetAllTopics = 'topic-message:get-all-topics',
+  TopicMessage_GetMessageBlocks = 'topic-message:get-message-blocks',
+  TopicMessage_GetAllMessageBlocks = 'topic-message:get-all-message-blocks',
+  TopicMessage_PutTopic = 'topic-message:put-topic',
+  TopicMessage_DeleteTopic = 'topic-message:delete-topic',
+  TopicMessage_PutMessageBlocks = 'topic-message:put-message-blocks',
+  TopicMessage_DeleteMessageBlocks = 'topic-message:delete-message-blocks',
+
+  // Data Items (Knowledge Notes & Quick Phrases) V2
+  DataItem_GetKnowledgeNote = 'data-item:get-knowledge-note',
+  DataItem_PutKnowledgeNote = 'data-item:put-knowledge-note',
+  DataItem_DeleteKnowledgeNote = 'data-item:delete-knowledge-note',
+  DataItem_GetAllQuickPhrases = 'data-item:get-all-quick-phrases',
+  DataItem_PutQuickPhrase = 'data-item:put-quick-phrase',
+  DataItem_DeleteQuickPhrase = 'data-item:delete-quick-phrase',
+
   // Provider
   Provider_AddKey = 'provider:add-key',
 

@@ -1,5 +1,4 @@
 import { LoadingIcon } from '@renderer/components/Icons'
-import db from '@renderer/databases'
 import useScrollPosition from '@renderer/hooks/useScrollPosition'
 import { selectTopicsMap } from '@renderer/store/assistants'
 import type { Topic } from '@renderer/types'
@@ -10,8 +9,9 @@ import {
   type KeywordMatchMode,
   splitKeywordsToTerms
 } from '@renderer/utils/keywordSearch'
+import { IpcChannel } from '@shared/IpcChannel'
+import { useQuery } from '@tanstack/react-query'
 import { List, Segmented, Spin, Typography } from 'antd'
-import { useLiveQuery } from 'dexie-react-hooks'
 import type { FC } from 'react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -194,7 +194,10 @@ const SearchResults: FC<Props> = ({ keywords, onMessageClick, onTopicClick, ...p
   const [sortOrder, setSortOrder] = useState<ResultSortOrder>('newest')
   const [searchTerms, setSearchTerms] = useState<string[]>(splitKeywordsToTerms(keywords))
 
-  const topics = useLiveQuery(() => db.topics.toArray(), [])
+  const { data: topics = [] } = useQuery({
+    queryKey: ['all-topics'],
+    queryFn: () => window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetAllTopics)
+  })
   // FIXME: db 中没有 topic.name 等信息，只能从 store 获取
   const storeTopicsMap = useSelector(selectTopicsMap)
 
@@ -217,9 +220,10 @@ const SearchResults: FC<Props> = ({ keywords, onMessageClick, onTopicClick, ...p
     const newSearchTerms = splitKeywordsToTerms(keywords)
     const searchRegexes = buildKeywordRegexes(newSearchTerms, { matchMode, flags: 'i' })
 
-    const blocks = (await db.message_blocks.toArray())
-      .filter((block) => block.type === MessageBlockType.MAIN_TEXT)
-      .filter((block) => {
+    const allBlocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetAllMessageBlocks)
+    const blocks = allBlocks
+      .filter((block: any) => block.type === MessageBlockType.MAIN_TEXT)
+      .filter((block: any) => {
         const searchableContent = stripMarkdownFormatting(block.content)
         return searchRegexes.some((regex) => regex.test(searchableContent))
       })

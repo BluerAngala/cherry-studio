@@ -1,7 +1,6 @@
 import { loggerService } from '@logger'
 import CollapsibleSearchBar from '@renderer/components/CollapsibleSearchBar'
 import Scrollbar from '@renderer/components/Scrollbar'
-import db from '@renderer/databases'
 import { useMCPServers } from '@renderer/hooks/useMCPServers'
 import type { MCPServer } from '@renderer/types'
 import { Button, Divider, Flex, Input, Space } from 'antd'
@@ -13,6 +12,8 @@ import styled from 'styled-components'
 
 import { SettingHelpLink, SettingHelpTextRow, SettingSubtitle } from '..'
 import { getProviderDisplayName, type ProviderConfig } from './providers/config'
+import { IpcChannel } from '@shared/IpcChannel'
+
 
 const logger = loggerService.withContext('McpProviderSettings')
 
@@ -38,7 +39,7 @@ const McpProviderSettings: React.FC<Props> = ({ provider, existingServers }) => 
     const loadServersFromDb = async () => {
       try {
         const dbKey = `mcp:provider:${provider.key}:servers`
-        const setting = await db.settings.get(dbKey)
+        const setting = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, dbKey)
         const savedServers = setting?.value || []
         setAvailableServers(savedServers)
       } catch (error) {
@@ -103,7 +104,7 @@ const McpProviderSettings: React.FC<Props> = ({ provider, existingServers }) => 
 
         // Save to database
         const dbKey = `mcp:provider:${provider.key}:servers`
-        await db.settings.put({ id: dbKey, value: servers })
+        await window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: dbKey, value: servers })
 
         window.toast.success(t('settings.mcp.fetch.success', 'Successfully fetched MCP servers'))
       } else {

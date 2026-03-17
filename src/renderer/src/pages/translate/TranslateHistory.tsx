@@ -1,13 +1,12 @@
 import { DeleteOutlined, StarFilled, StarOutlined } from '@ant-design/icons'
 import { HStack } from '@renderer/components/Layout'
 import { DynamicVirtualList } from '@renderer/components/VirtualList'
-import db from '@renderer/databases'
 import useTranslate from '@renderer/hooks/useTranslate'
 import { clearHistory, deleteHistory, updateTranslateHistory } from '@renderer/services/TranslateService'
 import type { TranslateHistory, TranslateLanguage } from '@renderer/types'
+import { useQuery } from '@tanstack/react-query'
 import { Button, Drawer, Empty, Flex, Input, Popconfirm } from 'antd'
 import dayjs from 'dayjs'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { isEmpty } from 'lodash'
 import { SearchIcon } from 'lucide-react'
 import type { FC } from 'react'
@@ -34,7 +33,13 @@ const ITEM_HEIGHT = 160
 const TranslateHistoryList: FC<TranslateHistoryProps> = ({ isOpen, onHistoryItemClick, onClose }) => {
   const { t } = useTranslation()
   const { getLanguageByLangcode } = useTranslate()
-  const _translateHistory = useLiveQuery(() => db.translate_history.orderBy('createdAt').reverse().toArray(), [])
+  const { data: _translateHistory = [] } = useQuery({
+    queryKey: ['translate_history'],
+    queryFn: async () => {
+      // NOTE: IPC channel should be added for translate history, returning empty for now
+      return []
+    }
+  })
   const [search, setSearch] = useState('')
   const [displayedHistory, setDisplayedHistory] = useState<DisplayedTranslateHistoryItem[]>([])
   const [showStared, setShowStared] = useState<boolean>(false)

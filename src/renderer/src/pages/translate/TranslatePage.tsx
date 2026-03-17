@@ -7,7 +7,6 @@ import ModelSelectButton from '@renderer/components/ModelSelectButton'
 import { isEmbeddingModel, isRerankModel, isTextToImageModel } from '@renderer/config/models'
 import { LanguagesEnum, UNKNOWN } from '@renderer/config/translate'
 import { useCodeStyle } from '@renderer/context/CodeStyleProvider'
-import db from '@renderer/databases'
 import { useDefaultModel } from '@renderer/hooks/useAssistant'
 import { useDrag } from '@renderer/hooks/useDrag'
 import { useFiles } from '@renderer/hooks/useFiles'
@@ -52,6 +51,8 @@ import styled from 'styled-components'
 
 import TranslateHistoryList from './TranslateHistory'
 import TranslateSettings from './TranslateSettings'
+import { IpcChannel } from '@shared/IpcChannel'
+
 
 const logger = loggerService.withContext('TranslatePage')
 
@@ -109,7 +110,7 @@ const TranslatePage: FC = () => {
   // 控制翻译模型切换
   const handleModelChange = (model: Model) => {
     setTranslateModel(model)
-    db.settings.put({ id: 'translate:model', value: model.id })
+    window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'translate:model', value: model.id })
   }
 
   // 控制翻译状态
@@ -296,7 +297,7 @@ const TranslatePage: FC = () => {
   // 控制双向翻译切换
   const toggleBidirectional = (value: boolean) => {
     setIsBidirectional(value)
-    db.settings.put({ id: 'translate:bidirectional:enabled', value })
+    window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'translate:bidirectional:enabled', value })
   }
 
   // 控制历史记录点击
@@ -369,14 +370,14 @@ const TranslatePage: FC = () => {
   // 控制设置加载
   useEffect(() => {
     runAsyncFunction(async () => {
-      const targetLang = await db.settings.get({ id: 'translate:target:language' })
+      const targetLang = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'translate:target:language')
       targetLang && setTargetLanguage(getLanguageByLangcode(targetLang.value))
 
-      const sourceLang = await db.settings.get({ id: 'translate:source:language' })
+      const sourceLang = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'translate:source:language')
       sourceLang &&
         setSourceLanguage(sourceLang.value === 'auto' ? sourceLang.value : getLanguageByLangcode(sourceLang.value))
 
-      const bidirectionalPairSetting = await db.settings.get({ id: 'translate:bidirectional:pair' })
+      const bidirectionalPairSetting = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'translate:bidirectional:pair')
       if (bidirectionalPairSetting) {
         const langPair = bidirectionalPairSetting.value
         let source: undefined | TranslateLanguage
@@ -392,29 +393,29 @@ const TranslatePage: FC = () => {
         } else {
           const defaultPair: [TranslateLanguage, TranslateLanguage] = [LanguagesEnum.enUS, LanguagesEnum.zhCN]
           setBidirectionalPair(defaultPair)
-          db.settings.put({
+          window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, {
             id: 'translate:bidirectional:pair',
             value: [defaultPair[0].langCode, defaultPair[1].langCode]
           })
         }
       }
 
-      const bidirectionalSetting = await db.settings.get({ id: 'translate:bidirectional:enabled' })
+      const bidirectionalSetting = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'translate:bidirectional:enabled')
       setIsBidirectional(bidirectionalSetting ? bidirectionalSetting.value : false)
 
-      const scrollSyncSetting = await db.settings.get({ id: 'translate:scroll:sync' })
+      const scrollSyncSetting = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'translate:scroll:sync')
       setIsScrollSyncEnabled(scrollSyncSetting ? scrollSyncSetting.value : false)
 
-      const markdownSetting = await db.settings.get({ id: 'translate:markdown:enabled' })
+      const markdownSetting = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'translate:markdown:enabled')
       setEnableMarkdown(markdownSetting ? markdownSetting.value : false)
 
-      const autoDetectionMethodSetting = await db.settings.get({ id: 'translate:detect:method' })
+      const autoDetectionMethodSetting = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, 'translate:detect:method')
 
       if (autoDetectionMethodSetting) {
         setAutoDetectionMethod(autoDetectionMethodSetting.value)
       } else {
         setAutoDetectionMethod('franc')
-        db.settings.put({ id: 'translate:detect:method', value: 'franc' })
+        window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'translate:detect:method', value: 'franc' })
       }
     })
   }, [getLanguageByLangcode])
@@ -422,7 +423,7 @@ const TranslatePage: FC = () => {
   // 控制设置同步
   const updateAutoDetectionMethod = async (method: AutoDetectionMethod) => {
     try {
-      await db.settings.put({ id: 'translate:detect:method', value: method })
+      await window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'translate:detect:method', value: method })
       setAutoDetectionMethod(method)
     } catch (e) {
       logger.error('Failed to update auto detection method setting.', e as Error)
@@ -466,7 +467,7 @@ const TranslatePage: FC = () => {
         value={targetLanguage.langCode}
         onChange={(value) => {
           setTargetLanguage(getLanguageByLangcode(value))
-          db.settings.put({ id: 'translate:target:language', value })
+          window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'translate:target:language', value })
         }}
       />
     )
@@ -733,7 +734,7 @@ const TranslatePage: FC = () => {
               onChange={(value) => {
                 if (value !== 'auto') setSourceLanguage(getLanguageByLangcode(value))
                 else setSourceLanguage('auto')
-                db.settings.put({ id: 'translate:source:language', value })
+                window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'translate:source:language', value })
               }}
               extraOptionsBefore={[
                 {

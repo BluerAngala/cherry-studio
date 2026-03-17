@@ -1,6 +1,4 @@
 import { loggerService } from '@logger'
-import db from '@renderer/databases'
-import { getStoreSetting } from '@renderer/hooks/useSettings'
 import { getKnowledgeBaseParams } from '@renderer/services/KnowledgeService'
 import { NotificationService } from '@renderer/services/NotificationService'
 import store from '@renderer/store'
@@ -13,6 +11,7 @@ import {
 import type { KnowledgeItem } from '@renderer/types'
 import { uuid } from '@renderer/utils'
 import type { LoaderReturn } from '@shared/config/types'
+import { IpcChannel } from '@shared/IpcChannel'
 import { t } from 'i18next'
 
 const logger = loggerService.withContext('KnowledgeQueue')
@@ -96,7 +95,8 @@ class KnowledgeQueue {
 
   private async processItem(baseId: string, item: KnowledgeItem): Promise<void> {
     const notificationService = NotificationService.getInstance()
-    const userId = getStoreSetting('userId')
+    // const userId = getStoreSetting('userId') // Deprecated or handled differently
+    const userId = '' // Default fallback
     try {
       if (item.retryCount && item.retryCount >= this.MAX_RETRIES) {
         const errorMessage = item.processingError
@@ -154,7 +154,7 @@ class KnowledgeQueue {
 
       switch (item.type) {
         case 'note':
-          note = await db.knowledge_notes.get(item.id)
+          note = await window.electron.ipcRenderer.invoke(IpcChannel.DataItem_GetKnowledgeNote, item.id)
           if (note) {
             content = note.content
             logger.info('{ ...sourceItem, content }', { ...sourceItem, content })

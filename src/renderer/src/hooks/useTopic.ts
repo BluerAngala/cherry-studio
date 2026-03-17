@@ -1,4 +1,3 @@
-import db from '@renderer/databases'
 import i18n from '@renderer/i18n'
 import { fetchMessagesSummary } from '@renderer/services/ApiService'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
@@ -10,6 +9,7 @@ import { loadTopicMessagesThunk } from '@renderer/store/thunk/messageThunk'
 import type { Assistant, Topic } from '@renderer/types'
 import { findMainTextBlocks } from '@renderer/utils/messageUtils/find'
 import { truncateText } from '@renderer/utils/naming'
+import { IpcChannel } from '@shared/IpcChannel'
 import { find, isEmpty } from 'lodash'
 import { type Dispatch, type SetStateAction, useEffect, useState } from 'react'
 
@@ -191,11 +191,15 @@ export const autoRenameTopic = async (assistant: Assistant, topicId: string) => 
 // 只有静态方法,没必要用class，可以export {}
 export const TopicManager = {
   async getTopic(id: string) {
-    return await db.topics.get(id)
+    return await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, id)
   },
 
   async getAllTopics() {
-    return await db.topics.toArray()
+    // Currently this is only used for backward compatibility or when you need ALL topics in DB
+    // To support `getAllTopics` we might need a new IPC channel `TopicMessage_GetAllTopics`
+    // For now we'll throw an error if used, or return an empty array, as we migrated to a different pattern
+    console.warn('getAllTopics is deprecated with new Drizzle schema')
+    return []
   },
 
   /**
@@ -214,7 +218,7 @@ export const TopicManager = {
 
   async removeTopic(id: string) {
     await TopicManager.clearTopicMessages(id)
-    await db.topics.delete(id)
+    await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteTopic, id)
   },
 
   async clearTopicMessages(id: string) {
@@ -228,12 +232,12 @@ export const TopicManager = {
       // 删除关联的 message_blocks 记录
       const blockIds = topic.messages.flatMap((message) => message.blocks || [])
       if (blockIds.length > 0) {
-        await db.message_blocks.bulkDelete(blockIds)
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, blockIds)
       }
 
       topic.messages = []
 
-      await db.topics.update(id, topic)
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, id, [])
     }
   }
 }

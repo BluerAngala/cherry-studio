@@ -8,7 +8,6 @@ import {
   isVisionModels,
   isWebSearchModel
 } from '@renderer/config/models'
-import db from '@renderer/databases'
 import { useAssistant } from '@renderer/hooks/useAssistant'
 import { useInputText } from '@renderer/hooks/useInputText'
 import { useMessageOperations, useTopicLoading } from '@renderer/hooks/useMessageOperations'
@@ -44,6 +43,7 @@ import type { MentionedAssistant, MessageInputBaseParams } from '@renderer/types
 import { delay } from '@renderer/utils'
 import { getSendMessageShortcutLabel } from '@renderer/utils/input'
 import { documentExts, imageExts, textExts } from '@shared/config/constant'
+import { IpcChannel } from '@shared/IpcChannel'
 import { debounce } from 'lodash'
 import type { FC } from 'react'
 import React, { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
@@ -341,7 +341,7 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
   const addNewTopic = useCallback(async () => {
     const newTopic = getDefaultTopic(assistant.id)
 
-    await db.topics.add({ id: newTopic.id, messages: [] })
+    await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, newTopic.id, [])
 
     if (assistant.defaultModel) {
       setModel(assistant.defaultModel)

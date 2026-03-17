@@ -1,10 +1,10 @@
 import { loggerService } from '@logger'
 import TextEditPopup from '@renderer/components/Popups/TextEditPopup'
-import db from '@renderer/databases'
 import FileManager from '@renderer/services/FileManager'
 import store from '@renderer/store'
 import type { FileMetadata } from '@renderer/types'
 import type { Message } from '@renderer/types/newMessage'
+import { IpcChannel } from '@shared/IpcChannel'
 import dayjs from 'dayjs'
 
 // 排序相关
@@ -59,33 +59,38 @@ export async function handleDelete(fileId: string, t: (key: string) => string) {
 
   await FileManager.deleteFile(fileId, true)
 
-  const relatedBlocks = await db.message_blocks.where('file.id').equals(fileId).toArray()
-  const blockIdsToDelete = relatedBlocks.map((b) => b.id)
-  const affectedMessageIds = [...new Set(relatedBlocks.map((b) => b.messageId))]
+  const allBlocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetAllMessageBlocks)
+  const relatedBlocks = allBlocks.filter((b: any) => b.file?.id === fileId)
+  const blockIdsToDelete = relatedBlocks.map((b: any) => b.id)
+  const affectedMessageIds = [...new Set(relatedBlocks.map((b: any) => b.messageId))]
 
   try {
-    await db.transaction('rw', db.topics, db.message_blocks, async () => {
-      const allTopics = await db.topics.toArray()
-      const topicsToUpdate: Record<string, { messages: Message[] }> = {}
+    const allTopics = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetAllTopics)
+    const topicsToUpdate: Record<string, { messages: Message[] }> = {}
 
-      for (const topic of allTopics) {
-        let modified = false
-        const newMessages = (topic.messages || []).map((msg) => {
-          if (affectedMessageIds.includes(msg.id)) {
-            const filtered = (msg.blocks || []).filter((blk) => !blockIdsToDelete.includes(blk))
-            if (filtered.length < (msg.blocks || []).length) {
-              modified = true
-              return { ...msg, blocks: filtered }
-            }
+    for (const topic of allTopics) {
+      let modified = false
+      const newMessages = (topic.messages || []).map((msg: any) => {
+        if (affectedMessageIds.includes(msg.id)) {
+          const filtered = (msg.blocks || []).filter((blk: string) => !blockIdsToDelete.includes(blk))
+          if (filtered.length < (msg.blocks || []).length) {
+            modified = true
+            return { ...msg, blocks: filtered }
           }
-          return msg
-        })
-        if (modified) topicsToUpdate[topic.id] = { messages: newMessages }
-      }
+        }
+        return msg
+      })
+      if (modified) topicsToUpdate[topic.id] = { messages: newMessages }
+    }
 
-      await Promise.all(Object.entries(topicsToUpdate).map(([id, data]) => db.topics.update(id, data)))
-      await db.message_blocks.bulkDelete(blockIdsToDelete)
-    })
+    await Promise.all(
+      Object.entries(topicsToUpdate).map(([id, data]) =>
+        window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, id, data.messages)
+      )
+    )
+    if (blockIdsToDelete.length > 0) {
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, blockIdsToDelete)
+    }
     logger.info(`Deleted ${blockIdsToDelete.length} blocks for file ${fileId}`)
   } catch (err) {
     logger.error(`Error removing file blocks for ${fileId}:`, err as Error)

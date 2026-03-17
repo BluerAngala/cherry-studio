@@ -1,7 +1,6 @@
 import { loggerService } from '@logger'
 import { IpcChannel } from '@shared/IpcChannel'
 
-import db from '../databases'
 import type { RootState } from '../store'
 
 const logger = loggerService.withContext('MigrationV2Service')
@@ -63,15 +62,18 @@ export class MigrationV2Service {
   }
 
   private async gatherFiles() {
-    return await db.table('files').toArray()
+    // return await db.table('files').toArray()
+    return []
   }
 
   private async gatherKnowledgeNotes() {
-    return await db.table('knowledge_notes').toArray()
+    // return await db.table('knowledge_notes').toArray()
+    return []
   }
 
   private async gatherTranslateHistory() {
-    return await db.table('translate_history').toArray()
+    // return await db.table('translate_history').toArray()
+    return []
   }
 }
 

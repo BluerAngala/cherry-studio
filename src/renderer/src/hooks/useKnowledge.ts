@@ -1,5 +1,4 @@
 import { loggerService } from '@logger'
-import { db } from '@renderer/databases'
 import KnowledgeQueue from '@renderer/queue/KnowledgeQueue'
 import { getKnowledgeBaseParams } from '@renderer/services/KnowledgeService'
 import type { RootState } from '@renderer/store'
@@ -21,6 +20,7 @@ import { addFilesThunk, addItemThunk, addNoteThunk, addVedioThunk } from '@rende
 import type { FileMetadata, KnowledgeBase, KnowledgeItem, KnowledgeNoteItem, ProcessingStatus } from '@renderer/types'
 import { isKnowledgeFileItem, isKnowledgeNoteItem, isKnowledgeVideoItem } from '@renderer/types'
 import { runAsyncFunction, uuid } from '@renderer/utils'
+import { IpcChannel } from '@shared/IpcChannel'
 import dayjs from 'dayjs'
 import { cloneDeep } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
@@ -93,14 +93,14 @@ export const useKnowledge = (baseId: string) => {
 
   // 更新笔记内容
   const updateNoteContent = async (noteId: string, content: string) => {
-    const note = await db.knowledge_notes.get(noteId)
+    const note = await window.electron.ipcRenderer.invoke(IpcChannel.DataItem_GetKnowledgeNote, noteId)
     if (note) {
       const updatedNote = {
         ...note,
         content,
         updated_at: Date.now()
       }
-      await db.knowledge_notes.put(updatedNote)
+      await window.electron.ipcRenderer.invoke(IpcChannel.DataItem_PutKnowledgeNote, updatedNote)
       dispatch(updateNotes({ baseId, item: updatedNote }))
     }
     const noteItem = base?.items.find((item) => item.id === noteId)
@@ -109,7 +109,7 @@ export const useKnowledge = (baseId: string) => {
 
   // 获取笔记内容
   const getNoteContent = async (noteId: string) => {
-    return await db.knowledge_notes.get(noteId)
+    return await window.electron.ipcRenderer.invoke(IpcChannel.DataItem_GetKnowledgeNote, noteId)
   }
 
   const updateItem = (item: KnowledgeItem) => {
@@ -253,7 +253,7 @@ export const useKnowledge = (baseId: string) => {
           break
         case 'note':
           try {
-            const note = await db.knowledge_notes.get(item.id)
+            const note = await window.electron.ipcRenderer.invoke(IpcChannel.DataItem_GetKnowledgeNote, item.id)
             const content = note?.content || ''
             await dispatch(addNoteThunk(newBase.id, content))
           } catch (error) {
@@ -297,7 +297,7 @@ export const useKnowledge = (baseId: string) => {
     runAsyncFunction(async () => {
       const newNoteItems = await Promise.all(
         notes.map(async (item) => {
-          const note = await db.knowledge_notes.get(item.id)
+          const note = await window.electron.ipcRenderer.invoke(IpcChannel.DataItem_GetKnowledgeNote, item.id)
           return { ...item, content: note?.content ?? '' } satisfies KnowledgeNoteItem
         })
       )

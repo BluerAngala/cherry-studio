@@ -1,6 +1,7 @@
 import { loggerService } from '@logger'
-import db from '@renderer/databases'
 import { convertToBase64 } from '@renderer/utils'
+import { IpcChannel } from '@shared/IpcChannel'
+
 
 const logger = loggerService.withContext('ImageStorage')
 
@@ -11,23 +12,25 @@ export default class ImageStorage {
     const id = IMAGE_PREFIX + key
     try {
       if (typeof value === 'string') {
-        // string（emoji）
-        if (await db.settings.get(id)) {
-          db.settings.update(id, { value })
-          return
-        }
-        await db.settings.add({ id, value })
-      } else {
-        // file image
-        const base64Image = await convertToBase64(value)
-        if (typeof base64Image === 'string') {
-          if (await db.settings.get(id)) {
-            db.settings.update(id, { value: base64Image })
+          // string（emoji）
+          const existing = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, id)
+          if (existing) {
+            window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id, value })
             return
           }
-          await db.settings.add({ id, value: base64Image })
+          await window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id, value })
+        } else {
+        // file image
+        const base64Image = await convertToBase64(value)
+          if (typeof base64Image === 'string') {
+            const existing = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, id)
+            if (existing) {
+              window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id, value: base64Image })
+              return
+            }
+            await window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id, value: base64Image })
+          }
         }
-      }
     } catch (error) {
       logger.error('Error storing the image', error as Error)
     }
@@ -35,15 +38,18 @@ export default class ImageStorage {
 
   static async get(key: string): Promise<string> {
     const id = IMAGE_PREFIX + key
-    return (await db.settings.get(id))?.value
+    const res = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, id)
+    return res?.value
   }
 
   static async remove(key: string): Promise<void> {
-    const id = IMAGE_PREFIX + key
     try {
-      const record = await db.settings.get(id)
+      const id = IMAGE_PREFIX + key
+      const record = await window.electron.ipcRenderer.invoke(IpcChannel.Config_Get, id)
       if (record) {
-        await db.settings.delete(id)
+        // TODO: Add Config_Delete IPC channel if needed
+        // For now, set value to null to mark as deleted
+        await window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id, value: null })
       }
     } catch (error) {
       logger.error('Error removing the image', error as Error)

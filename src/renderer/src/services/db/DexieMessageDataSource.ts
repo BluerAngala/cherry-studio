@@ -15,7 +15,6 @@
  * --------------------------------------------------------------------------
  */
 import { loggerService } from '@logger'
-import db from '@renderer/databases'
 import FileManager from '@renderer/services/FileManager'
 import store from '@renderer/store'
 import { updateTopicUpdatedAt } from '@renderer/store/assistants'
@@ -39,9 +38,10 @@ export class DexieMessageDataSource implements MessageDataSource {
     blocks: MessageBlock[]
   }> {
     try {
-      const topic = await db.topics.get(topicId)
+      let topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
       if (!topic) {
-        await db.topics.add({ id: topicId, messages: [] })
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, [])
+        topic = { id: topicId, messages: [] }
       }
       const messages = topic?.messages || []
 
@@ -50,7 +50,7 @@ export class DexieMessageDataSource implements MessageDataSource {
       }
 
       const messageIds = messages.map((m) => m.id)
-      const blocks = await db.message_blocks.where('messageId').anyOf(messageIds).toArray()
+      const blocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetMessageBlocks, messageIds)
 
       // Ensure block IDs are strings for consistency
       const messagesWithBlockIds = messages.map((m) => ({
@@ -67,7 +67,7 @@ export class DexieMessageDataSource implements MessageDataSource {
 
   async getRawTopic(topicId: string): Promise<{ id: string; messages: Message[] } | undefined> {
     try {
-      return await db.topics.get(topicId)
+      return await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
     } catch (error) {
       logger.error(`Failed to get raw topic ${topicId}:`, error as Error)
       throw error
@@ -77,40 +77,38 @@ export class DexieMessageDataSource implements MessageDataSource {
   // ============ Write Operations ============
   async appendMessage(topicId: string, message: Message, blocks: MessageBlock[], insertIndex?: number): Promise<void> {
     try {
-      await db.transaction('rw', db.topics, db.message_blocks, async () => {
-        // Save blocks first
-        if (blocks.length > 0) {
-          await db.message_blocks.bulkPut(blocks)
-        }
+      // Save blocks first
+      if (blocks.length > 0) {
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutMessageBlocks, blocks)
+      }
 
-        // Get or create topic
-        let topic = await db.topics.get(topicId)
-        if (!topic) {
-          await db.topics.add({ id: topicId, messages: [] })
-          topic = await db.topics.get(topicId)
-        }
+      // Get or create topic
+      let topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
+      if (!topic) {
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, [])
+        topic = { id: topicId, messages: [] }
+      }
 
-        if (!topic) {
-          throw new Error(`Failed to create topic ${topicId}`)
-        }
+      if (!topic) {
+        throw new Error(`Failed to create topic ${topicId}`)
+      }
 
-        const updatedMessages = [...(topic.messages || [])]
+      const updatedMessages = [...(topic.messages || [])]
 
-        // Check if message already exists
-        const existingIndex = updatedMessages.findIndex((m) => m.id === message.id)
-        if (existingIndex !== -1) {
-          updatedMessages[existingIndex] = message
+      // Check if message already exists
+      const existingIndex = updatedMessages.findIndex((m) => m.id === message.id)
+      if (existingIndex !== -1) {
+        updatedMessages[existingIndex] = message
+      } else {
+        // Insert at specific index or append
+        if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= updatedMessages.length) {
+          updatedMessages.splice(insertIndex, 0, message)
         } else {
-          // Insert at specific index or append
-          if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= updatedMessages.length) {
-            updatedMessages.splice(insertIndex, 0, message)
-          } else {
-            updatedMessages.push(message)
-          }
+          updatedMessages.push(message)
         }
+      }
 
-        await db.topics.update(topicId, { messages: updatedMessages })
-      })
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, updatedMessages)
 
       store.dispatch(updateTopicUpdatedAt({ topicId }))
     } catch (error) {
@@ -121,19 +119,14 @@ export class DexieMessageDataSource implements MessageDataSource {
 
   async updateMessage(topicId: string, messageId: string, updates: Partial<Message>): Promise<void> {
     try {
-      await db.transaction('rw', db.topics, async () => {
-        await db.topics
-          .where('id')
-          .equals(topicId)
-          .modify((topic) => {
-            if (!topic || !topic.messages) return
+      const topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
+      if (!topic || !topic.messages) return
 
-            const messageIndex = topic.messages.findIndex((m) => m.id === messageId)
-            if (messageIndex !== -1) {
-              Object.assign(topic.messages[messageIndex], updates)
-            }
-          })
-      })
+      const messageIndex = topic.messages.findIndex((m) => m.id === messageId)
+      if (messageIndex !== -1) {
+        Object.assign(topic.messages[messageIndex], updates)
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, topic.messages)
+      }
 
       store.dispatch(updateTopicUpdatedAt({ topicId }))
     } catch (error) {
@@ -148,30 +141,25 @@ export class DexieMessageDataSource implements MessageDataSource {
     blocksToUpdate: MessageBlock[]
   ): Promise<void> {
     try {
-      await db.transaction('rw', db.topics, db.message_blocks, async () => {
-        // Update blocks
-        if (blocksToUpdate.length > 0) {
-          await db.message_blocks.bulkPut(blocksToUpdate)
-        }
+      // Update blocks
+      if (blocksToUpdate.length > 0) {
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutMessageBlocks, blocksToUpdate)
+      }
 
-        // Update message if there are actual changes beyond id and topicId
-        const keysToUpdate = Object.keys(messageUpdates).filter((key) => key !== 'id' && key !== 'topicId')
-        if (keysToUpdate.length > 0) {
-          await db.topics
-            .where('id')
-            .equals(topicId)
-            .modify((topic) => {
-              if (!topic || !topic.messages) return
-
-              const messageIndex = topic.messages.findIndex((m) => m.id === messageUpdates.id)
-              if (messageIndex !== -1) {
-                keysToUpdate.forEach((key) => {
-                  ;(topic.messages[messageIndex] as any)[key] = (messageUpdates as any)[key]
-                })
-              }
+      // Update message if there are actual changes beyond id and topicId
+      const keysToUpdate = Object.keys(messageUpdates).filter((key) => key !== 'id' && key !== 'topicId')
+      if (keysToUpdate.length > 0) {
+        const topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
+        if (topic && topic.messages) {
+          const messageIndex = topic.messages.findIndex((m) => m.id === messageUpdates.id)
+          if (messageIndex !== -1) {
+            keysToUpdate.forEach((key) => {
+              ;(topic.messages[messageIndex] as any)[key] = (messageUpdates as any)[key]
             })
+            await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, topic.messages)
+          }
         }
-      })
+      }
 
       store.dispatch(updateTopicUpdatedAt({ topicId }))
     } catch (error) {
@@ -182,36 +170,34 @@ export class DexieMessageDataSource implements MessageDataSource {
 
   async deleteMessage(topicId: string, messageId: string): Promise<void> {
     try {
-      await db.transaction('rw', db.topics, db.message_blocks, async () => {
-        const topic = await db.topics.get(topicId)
-        if (!topic) return
+      const topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
+      if (!topic || !topic.messages) return
 
-        const messageIndex = topic.messages.findIndex((m) => m.id === messageId)
-        if (messageIndex === -1) return
+      const messageIndex = topic.messages.findIndex((m) => m.id === messageId)
+      if (messageIndex === -1) return
 
-        const message = topic.messages[messageIndex]
-        const blockIds = message.blocks || []
+      const message = topic.messages[messageIndex]
+      const blockIds = message.blocks || []
 
-        // Delete blocks and handle files
-        if (blockIds.length > 0) {
-          const blocks = await db.message_blocks.where('id').anyOf(blockIds).toArray()
-          const files = blocks
-            .filter((block) => block.type === 'file' || block.type === 'image')
-            .map((block: any) => block.file)
-            .filter((file) => file !== undefined)
+      // Delete blocks and handle files
+      if (blockIds.length > 0) {
+        const blocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetMessageBlocks, blockIds)
+        const files = blocks
+          .filter((block) => block.type === 'file' || block.type === 'image')
+          .map((block: any) => block.file)
+          .filter((file) => file !== undefined)
 
-          // Clean up files
-          if (!isEmpty(files)) {
-            await Promise.all(files.map((file) => FileManager.deleteFile(file.id, false)))
-          }
-
-          await db.message_blocks.bulkDelete(blockIds)
+        // Clean up files
+        if (!isEmpty(files)) {
+          await Promise.all(files.map((file) => FileManager.deleteFile(file.id, false)))
         }
 
-        // Remove message from topic
-        topic.messages.splice(messageIndex, 1)
-        await db.topics.update(topicId, { messages: topic.messages })
-      })
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, blockIds)
+      }
+
+      // Remove message from topic
+      topic.messages.splice(messageIndex, 1)
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, topic.messages)
 
       store.dispatch(updateTopicUpdatedAt({ topicId }))
     } catch (error) {
@@ -222,43 +208,42 @@ export class DexieMessageDataSource implements MessageDataSource {
 
   async deleteMessages(topicId: string, messageIds: string[]): Promise<void> {
     try {
-      await db.transaction('rw', db.topics, db.message_blocks, async () => {
-        const topic = await db.topics.get(topicId)
-        if (!topic) return
+      const topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
+      if (!topic || !topic.messages) return
 
-        // Collect all block IDs from messages to be deleted
-        const allBlockIds: string[] = []
-        const messagesToDelete: Message[] = []
+      // Collect all block IDs from messages to be deleted
+      const allBlockIds: string[] = []
+      const messagesToDelete: Message[] = []
 
-        for (const messageId of messageIds) {
-          const message = topic.messages.find((m) => m.id === messageId)
-          if (message) {
-            messagesToDelete.push(message)
-            if (message.blocks && message.blocks.length > 0) {
-              allBlockIds.push(...message.blocks)
-            }
+      for (const messageId of messageIds) {
+        const message = topic.messages.find((m) => m.id === messageId)
+        if (message) {
+          messagesToDelete.push(message)
+          if (message.blocks && message.blocks.length > 0) {
+            allBlockIds.push(...message.blocks)
           }
         }
+      }
 
-        // Delete blocks and handle files
-        if (allBlockIds.length > 0) {
-          const blocks = await db.message_blocks.where('id').anyOf(allBlockIds).toArray()
-          const files = blocks
-            .filter((block) => block.type === 'file' || block.type === 'image')
-            .map((block: any) => block.file)
-            .filter((file) => file !== undefined)
+      // Delete blocks and handle files
+      if (allBlockIds.length > 0) {
+        const blocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetMessageBlocks, allBlockIds)
+        const files = blocks
+          .filter((block) => block.type === 'file' || block.type === 'image')
+          .map((block: any) => block.file)
+          .filter((file) => file !== undefined)
 
-          // Clean up files
-          if (!isEmpty(files)) {
-            await Promise.all(files.map((file) => FileManager.deleteFile(file.id, false)))
-          }
-          await db.message_blocks.bulkDelete(allBlockIds)
+        // Clean up files
+        if (!isEmpty(files)) {
+          await Promise.all(files.map((file) => FileManager.deleteFile(file.id, false)))
         }
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, allBlockIds)
+      }
 
-        // Remove messages from topic
-        const remainingMessages = topic.messages.filter((m) => !messageIds.includes(m.id))
-        await db.topics.update(topicId, { messages: remainingMessages })
-      })
+      // Remove messages from topic
+      const remainingMessages = topic.messages.filter((m) => !messageIds.includes(m.id))
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, remainingMessages)
+      
       store.dispatch(updateTopicUpdatedAt({ topicId }))
     } catch (error) {
       logger.error(`Failed to delete messages from topic ${topicId}:`, error as Error)
@@ -271,7 +256,7 @@ export class DexieMessageDataSource implements MessageDataSource {
   async updateBlocks(blocks: MessageBlock[]): Promise<void> {
     try {
       if (blocks.length === 0) return
-      await db.message_blocks.bulkPut(blocks)
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutMessageBlocks, blocks)
     } catch (error) {
       logger.error('Failed to update blocks:', error as Error)
       throw error
@@ -280,7 +265,12 @@ export class DexieMessageDataSource implements MessageDataSource {
 
   async updateSingleBlock(blockId: string, updates: Partial<MessageBlock>): Promise<void> {
     try {
-      await db.message_blocks.update(blockId, updates)
+      const blocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetMessageBlocks, [blockId])
+      if (blocks && blocks.length > 0) {
+        const block = blocks[0]
+        Object.assign(block, updates)
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutMessageBlocks, [block])
+      }
     } catch (error) {
       logger.error(`Failed to update block ${blockId}:`, error as Error)
       throw error
@@ -290,7 +280,7 @@ export class DexieMessageDataSource implements MessageDataSource {
   async bulkAddBlocks(blocks: MessageBlock[]): Promise<void> {
     try {
       if (blocks.length === 0) return
-      await db.message_blocks.bulkAdd(blocks)
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutMessageBlocks, blocks)
     } catch (error) {
       logger.error('Failed to bulk add blocks:', error as Error)
       throw error
@@ -301,19 +291,17 @@ export class DexieMessageDataSource implements MessageDataSource {
     try {
       if (blockIds.length === 0) return
 
-      // Get blocks to find associated files
-      const blocks = await db.message_blocks.where('id').anyOf(blockIds).toArray()
+      const blocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetMessageBlocks, blockIds)
       const files = blocks
         .filter((block) => block.type === 'file' || block.type === 'image')
         .map((block: any) => block.file)
         .filter((file) => file !== undefined)
 
-      // Clean up files
       if (!isEmpty(files)) {
         await Promise.all(files.map((file) => FileManager.deleteFile(file.id, false)))
       }
 
-      await db.message_blocks.bulkDelete(blockIds)
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, blockIds)
     } catch (error) {
       logger.error('Failed to delete blocks:', error as Error)
       throw error
@@ -328,41 +316,33 @@ export class DexieMessageDataSource implements MessageDataSource {
       let blockIds: string[] = []
       let files: any[] = []
 
-      await db.transaction('r', db.topics, db.message_blocks, async () => {
-        const topic = await db.topics.get(topicId)
-        if (!topic) return
+      const topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
+      if (!topic) return
 
-        // Get all block IDs
-        blockIds = topic.messages.flatMap((m) => m.blocks || [])
+      // Get all block IDs
+      blockIds = topic.messages.flatMap((m) => m.blocks || [])
 
-        // Get blocks and extract file info
-        if (blockIds.length > 0) {
-          const blocks = await db.message_blocks.where('id').anyOf(blockIds).toArray()
-          files = blocks
-            .filter((block) => block.type === 'file' || block.type === 'image')
-            .map((block: any) => block.file)
-            .filter((file) => file !== undefined)
-        }
-      })
+      // Get blocks and extract file info
+      if (blockIds.length > 0) {
+        const blocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetMessageBlocks, blockIds)
+        files = blocks
+          .filter((block) => block.type === 'file' || block.type === 'image')
+          .map((block: any) => block.file)
+          .filter((file) => file !== undefined)
+      }
 
       // Delete files outside the transaction to avoid transaction timeout
       if (!isEmpty(files)) {
         await Promise.all(files.map((file) => FileManager.deleteFile(file.id, false)))
       }
 
-      // Perform the actual database cleanup in a separate write transaction
-      await db.transaction('rw', db.topics, db.message_blocks, async () => {
-        const topic = await db.topics.get(topicId)
-        if (!topic) return
+      // Delete blocks
+      if (blockIds.length > 0) {
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_DeleteMessageBlocks, blockIds)
+      }
 
-        // Delete blocks
-        if (blockIds.length > 0) {
-          await db.message_blocks.bulkDelete(blockIds)
-        }
-
-        // Clear messages
-        await db.topics.update(topicId, { messages: [] })
-      })
+      // Clear messages
+      await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, [])
 
       store.dispatch(updateTopicUpdatedAt({ topicId }))
     } catch (error) {
@@ -373,7 +353,7 @@ export class DexieMessageDataSource implements MessageDataSource {
 
   async topicExists(topicId: string): Promise<boolean> {
     try {
-      const topic = await db.topics.get(topicId)
+      const topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, topicId)
       return !!topic
     } catch (error) {
       logger.error(`Failed to check if topic ${topicId} exists:`, error as Error)
@@ -385,7 +365,7 @@ export class DexieMessageDataSource implements MessageDataSource {
     try {
       const exists = await this.topicExists(topicId)
       if (!exists) {
-        await db.topics.add({ id: topicId, messages: [] })
+        await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_PutTopic, topicId, [])
       }
     } catch (error) {
       logger.error(`Failed to ensure topic ${topicId} exists:`, error as Error)

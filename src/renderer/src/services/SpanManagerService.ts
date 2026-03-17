@@ -6,7 +6,6 @@ import { cleanContext, endContext, getContext, startContext } from '@mcp-trace/t
 import type { Context, Span } from '@opentelemetry/api'
 import { context, SpanStatusCode, trace } from '@opentelemetry/api'
 import { isAsyncIterable } from '@renderer/aiCore/legacy/middleware/utils'
-import { db } from '@renderer/databases'
 import { getEnableDeveloperMode } from '@renderer/hooks/useSettings'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
 import { handleAsyncIterable } from '@renderer/trace/dataHandler/AsyncIterableHandler'
@@ -19,6 +18,7 @@ import type { Model, Topic } from '@renderer/types'
 import type { Message } from '@renderer/types/newMessage'
 import { MessageBlockType } from '@renderer/types/newMessage'
 import type { SdkRawChunk } from '@renderer/types/sdk'
+import { IpcChannel } from '@shared/IpcChannel'
 
 const logger = loggerService.withContext('SpanManagerService')
 
@@ -82,8 +82,8 @@ class SpanManagerService {
     if (message.role === 'user') {
       await window.api.trace.cleanHistory(message.topicId, message.traceId)
 
-      const topic = await db.topics.get(message.topicId)
-      _models = topic?.messages.filter((m) => m.role === 'assistant' && m.askId === message.id).map((m) => m.model)
+      const topic = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetTopic, message.topicId)
+      _models = topic?.messages.filter((m: any) => m.role === 'assistant' && m.askId === message.id).map((m: any) => m.model)
     } else {
       _models = [message.model]
       await window.api.trace.cleanHistory(message.topicId, message.traceId || '', message.model?.name)
@@ -131,6 +131,7 @@ class SpanManagerService {
     // 不使用 _addModelRootSpan，直接创建简单的 span 来避免额外的模型层级
     const entity = this.getModelSpanEntity(topicId, model.name)
     const span = webTracer.startSpan('')
+    // @ts-ignore
     span['_spanContext'].traceId = traceId
     entity.addSpan(span, true)
     this._updateContext(span, topicId, traceId)
@@ -141,12 +142,8 @@ class SpanManagerService {
   private async _getContentFromMessage(message: Message, content?: string): Promise<StartSpanParams> {
     let _content = content
     if (!_content) {
-      const blocks = await Promise.all(
-        message.blocks.map(async (blockId) => {
-          return await db.message_blocks.get(blockId)
-        })
-      )
-      _content = blocks.find((data) => data?.type === MessageBlockType.MAIN_TEXT)?.content
+      const blocks = await window.electron.ipcRenderer.invoke(IpcChannel.TopicMessage_GetMessageBlocks, message.blocks)
+      _content = blocks.find((data: any) => data?.type === MessageBlockType.MAIN_TEXT)?.content
     }
     return {
       topicId: message.topicId,

@@ -1,6 +1,5 @@
 import LanguageSelect from '@renderer/components/LanguageSelect'
 import { HStack } from '@renderer/components/Layout'
-import db from '@renderer/databases'
 import useTranslate from '@renderer/hooks/useTranslate'
 import type { AutoDetectionMethod, Model, TranslateLanguage } from '@renderer/types'
 import { Button, Flex, Modal, Radio, Space, Switch, Tooltip } from 'antd'
@@ -10,6 +9,8 @@ import { memo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import TranslateSettingsPopup from '../settings/TranslateSettingsPopup/TranslateSettingsPopup'
+import { IpcChannel } from '@shared/IpcChannel'
+
 
 // TODO: Just don't send so many props. Migrate them to redux.
 const TranslateSettings: FC<{
@@ -71,7 +72,7 @@ const TranslateSettings: FC<{
               checked={enableMarkdown}
               onChange={(checked) => {
                 setEnableMarkdown(checked)
-                db.settings.put({ id: 'translate:markdown:enabled', value: checked })
+                window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'translate:markdown:enabled', value: checked })
               }}
             />
           </Flex>
@@ -91,7 +92,7 @@ const TranslateSettings: FC<{
               checked={isScrollSyncEnabled}
               onChange={(checked) => {
                 setIsScrollSyncEnabled(checked)
-                db.settings.put({ id: 'translate:scroll:sync', value: checked })
+                window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, { id: 'translate:scroll:sync', value: checked })
               }}
             />
           </Flex>
@@ -162,7 +163,7 @@ const TranslateSettings: FC<{
                     }
                     setLocalPair(newPair)
                     setBidirectionalPair(newPair)
-                    db.settings.put({
+                    window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, {
                       id: 'translate:bidirectional:pair',
                       value: [newPair[0].langCode, newPair[1].langCode]
                     })
@@ -180,7 +181,7 @@ const TranslateSettings: FC<{
                     }
                     setLocalPair(newPair)
                     setBidirectionalPair(newPair)
-                    db.settings.put({
+                    window.electron.ipcRenderer.invoke(IpcChannel.Config_Set, {
                       id: 'translate:bidirectional:pair',
                       value: [newPair[0].langCode, newPair[1].langCode]
                     })

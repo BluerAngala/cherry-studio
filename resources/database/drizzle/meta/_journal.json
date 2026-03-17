@@ -29,6 +29,20 @@
       "when": 1773757562805,
       "tag": "0003_misty_toad_men",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1773760613347,
+      "tag": "0004_milky_the_initiative",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1773761459190,
+      "tag": "0005_chubby_rumiko_fujikawa",
+      "breakpoints": true
     }
   ]
 }

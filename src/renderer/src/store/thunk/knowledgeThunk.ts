@@ -15,7 +15,7 @@
  * --------------------------------------------------------------------------
  */
 import { loggerService } from '@logger'
-import { db } from '@renderer/databases'
+import db from '@renderer/databases'
 import { addFiles as addFilesAction, addItem, updateNotes } from '@renderer/store/knowledge'
 import type { FileMetadata, KnowledgeItem } from '@renderer/types'
 import { isKnowledgeNoteItem } from '@renderer/types'
