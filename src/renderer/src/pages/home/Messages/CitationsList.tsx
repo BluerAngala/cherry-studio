@@ -2,18 +2,22 @@ import ContextMenu from '@renderer/components/ContextMenu'
 import Favicon from '@renderer/components/Icons/FallbackFavicon'
 import Scrollbar from '@renderer/components/Scrollbar'
 import { useTemporaryValue } from '@renderer/hooks/useTemporaryValue'
+import { selectMessageMainText } from '@renderer/store/newMessage'
 import type { Citation } from '@renderer/types'
+import { highlightRelevantContext } from '@renderer/utils/citation'
 import { fetchWebContent } from '@renderer/utils/fetch'
 import { cleanMarkdownContent } from '@renderer/utils/formats'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { Button, message, Popover, Skeleton } from 'antd'
-import { Check, Copy, FileSearch } from 'lucide-react'
-import React from 'react'
+import { Check, ChevronDown, ChevronUp, Copy, FileSearch } from 'lucide-react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 
 interface CitationsListProps {
   citations: Citation[]
+  messageId: string
 }
 
 const queryClient = new QueryClient({
@@ -37,8 +41,9 @@ const truncateText = (text: string, maxLength = 100) => {
   return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
 }
 
-const CitationsList: React.FC<CitationsListProps> = ({ citations }) => {
+const CitationsList: React.FC<CitationsListProps> = ({ citations, messageId }) => {
   const { t } = useTranslation()
+  const messageContent = useSelector((state: any) => selectMessageMainText(state, messageId))
 
   const previewItems = citations.slice(0, 3)
   const count = citations.length
@@ -55,12 +60,12 @@ const CitationsList: React.FC<CitationsListProps> = ({ citations }) => {
           )}
           {citation.type === 'memory' && (
             <KnowledgePopoverContent>
-              <KnowledgeCitation citation={{ ...citation }} />
+              <KnowledgeCitation citation={{ ...citation }} messageContent={messageContent} />
             </KnowledgePopoverContent>
           )}
           {citation.type === 'knowledge' && (
             <KnowledgePopoverContent>
-              <KnowledgeCitation citation={{ ...citation }} />
+              <KnowledgeCitation citation={{ ...citation }} messageContent={messageContent} />
             </KnowledgePopoverContent>
           )}
         </PopoverContentItem>
@@ -84,11 +89,13 @@ const CitationsList: React.FC<CitationsListProps> = ({ citations }) => {
             {t('message.citations')}
           </div>
         }
-        placement="right"
+        placement="bottomLeft"
         trigger="click"
+        align={{ offset: [0, 8] }}
         styles={{
           body: {
-            padding: '0 0 8px 0'
+            padding: '0 0 8px 0',
+            maxWidth: 'min(600px, 80vw)'
           }
         }}>
         <OpenButton type="text">
@@ -172,7 +179,21 @@ const WebSearchCitation: React.FC<{ citation: Citation }> = ({ citation }) => {
   )
 }
 
-const KnowledgeCitation: React.FC<{ citation: Citation }> = ({ citation }) => {
+const KnowledgeCitation: React.FC<{
+  citation: Citation
+  messageContent?: string
+}> = ({ citation, messageContent }) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const { t } = useTranslation()
+
+  const highlightedContent = React.useMemo(() => {
+    if (!citation.content) return ''
+    if (messageContent) {
+      return highlightRelevantContext(citation.content, messageContent)
+    }
+    return citation.content
+  }, [citation.content, messageContent])
+
   return (
     <ContextMenu>
       <WebSearchCard>
@@ -180,15 +201,28 @@ const KnowledgeCitation: React.FC<{ citation: Citation }> = ({ citation }) => {
           {citation.showFavicon && <FileSearch width={16} />}
           <CitationLink className="text-nowrap" href={citation.url} onClick={(e) => handleLinkClick(citation.url, e)}>
             {/* example title: User/path/example.pdf */}
-            {citation.title?.split('/').pop()}
+            {citation.title?.split(/[/\\]/).pop()}
           </CitationLink>
           <CitationIndex>{citation.number}</CitationIndex>
           {citation.content && <CopyButton content={citation.content} />}
         </WebSearchCardHeader>
         <WebSearchCardContent
-          className="selectable-text"
-          dangerouslySetInnerHTML={{ __html: citation.content ?? '' }}
+          className={`selectable-text ${isExpanded ? 'expanded' : 'clamped'}`}
+          dangerouslySetInnerHTML={{ __html: highlightedContent }}
         />
+        {citation.content && citation.content.length > 200 && (
+          <ShowMoreButton type="link" onClick={() => setIsExpanded(!isExpanded)}>
+            {isExpanded ? (
+              <>
+                <ChevronUp size={14} /> {t('common.collapse')}
+              </>
+            ) : (
+              <>
+                <ChevronDown size={14} /> {t('common.expand')}
+              </>
+            )}
+          </ShowMoreButton>
+        )}
       </WebSearchCard>
     </ContextMenu>
   )
@@ -317,6 +351,35 @@ const WebSearchCardContent = styled.div`
     -ms-user-select: text;
     user-select: text;
   }
+
+  &.clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &.expanded {
+    display: block;
+  }
+
+  mark {
+    background-color: rgba(255, 215, 0, 0.3);
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+`
+
+const ShowMoreButton = styled(Button)`
+  padding: 0;
+  height: auto;
+  font-size: 12px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-link);
 `
 
 const PopoverContentContainer = styled(Scrollbar)`

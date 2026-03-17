@@ -65,7 +65,7 @@ function CitationBlock({ block }: { block: CitationMessageBlock }) {
       {block.status === MessageBlockStatus.SUCCESS &&
         (hasGeminiBlock ? (
           <>
-            <CitationsList citations={formattedCitations} />
+            <CitationsList citations={formattedCitations} messageId={block.messageId} />
             <SearchEntryPoint
               dangerouslySetInnerHTML={{
                 __html:
@@ -87,7 +87,7 @@ function CitationBlock({ block }: { block: CitationMessageBlock }) {
             />
           </>
         ) : (
-          formattedCitations.length > 0 && <CitationsList citations={formattedCitations} />
+          formattedCitations.length > 0 && <CitationsList citations={formattedCitations} messageId={block.messageId} />
         ))}
     </>
   )

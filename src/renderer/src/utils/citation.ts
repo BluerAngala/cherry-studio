@@ -171,7 +171,7 @@ export function normalizeCitationMarks(
  * 提取并高亮最相关的上下文
  * 使用 Bi-gram (二元语法) 算法计算句子与查询的相似度
  */
-function highlightRelevantContext(text: string, query: string): string {
+export function highlightRelevantContext(text: string, query: string): string {
   if (!text || !query) return text
 
   // 1. 将文本拆分为句子

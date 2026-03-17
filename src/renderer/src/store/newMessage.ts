@@ -19,6 +19,7 @@ import type { EntityState, PayloadAction } from '@reduxjs/toolkit'
 import { createEntityAdapter, createSlice } from '@reduxjs/toolkit'
 // Separate type-only imports from value imports
 import type { Message } from '@renderer/types/newMessage'
+import type { MainTextMessageBlock } from '@renderer/types/newMessage'
 import { AssistantMessageStatus, MessageBlockStatus, MessageBlockType } from '@renderer/types/newMessage'
 
 const logger = loggerService.withContext('newMessage')
@@ -317,5 +318,23 @@ export const selectMessagesForTopic = createSelector(
     }
     // Map the ordered IDs to the actual message objects from the dictionary
     return topicMessageIds.map((id) => messageEntities[id]).filter((m): m is Message => !!m) // Filter out undefined/null in case of inconsistencies
+  }
+)
+
+/**
+ * Selects the combined content of all main text blocks for a given message ID.
+ */
+export const selectMessageMainText = createSelector(
+  [
+    (state: RootState) => state.messageBlocks.entities,
+    (state: RootState, messageId: string) => state.messages.entities[messageId]?.blocks
+  ],
+  (blockEntities, blockIds) => {
+    if (!blockIds) return ''
+    return blockIds
+      .map((id) => (id ? blockEntities[id] : undefined))
+      .filter((block): block is MainTextMessageBlock => block?.type === MessageBlockType.MAIN_TEXT)
+      .map((block) => block.content)
+      .join('\n')
   }
 )
