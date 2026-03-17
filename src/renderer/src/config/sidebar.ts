@@ -6,6 +6,16 @@ import type { SidebarIcon } from '@renderer/types'
  */
 export const DEFAULT_SIDEBAR_ICONS: SidebarIcon[] = ['assistants', 'store', 'knowledge', 'minapp']
 
+export const DEFAULT_DISABLED_SIDEBAR_ICONS: SidebarIcon[] = [
+  'paintings',
+  'translate',
+  'files',
+  'code_tools',
+  'notes',
+  'openclaw',
+  'brainstorm'
+]
+
 /**
  * 必须显示的侧边栏图标（不能被隐藏）
  * 这些图标必须始终在侧边栏中可见

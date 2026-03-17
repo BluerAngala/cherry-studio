@@ -32,7 +32,7 @@ import {
 import { BUILTIN_OCR_PROVIDERS, BUILTIN_OCR_PROVIDERS_MAP, DEFAULT_OCR_PROVIDER } from '@renderer/config/ocr'
 import { TRANSLATE_PROMPT } from '@renderer/config/prompts'
 import { SYSTEM_PROVIDERS } from '@renderer/config/providers'
-import { DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
+import { DEFAULT_DISABLED_SIDEBAR_ICONS, DEFAULT_SIDEBAR_ICONS } from '@renderer/config/sidebar'
 import db from '@renderer/databases'
 import { getModel } from '@renderer/hooks/useModel'
 import i18n from '@renderer/i18n'
@@ -868,7 +868,7 @@ const migrateConfig = {
       }
       state.settings.sidebarIcons = {
         visible: DEFAULT_SIDEBAR_ICONS,
-        disabled: []
+        disabled: DEFAULT_DISABLED_SIDEBAR_ICONS
       }
       return state
     } catch (error) {
@@ -880,7 +880,7 @@ const migrateConfig = {
       if (!state.settings.sidebarIcons) {
         state.settings.sidebarIcons = {
           visible: DEFAULT_SIDEBAR_ICONS,
-          disabled: []
+          disabled: DEFAULT_DISABLED_SIDEBAR_ICONS
         }
       }
       return state
@@ -2259,11 +2259,12 @@ const migrateConfig = {
   },
   '136': (state: RootState) => {
     try {
+      const allIcons = [...DEFAULT_SIDEBAR_ICONS, ...DEFAULT_DISABLED_SIDEBAR_ICONS]
       state.settings.sidebarIcons.visible = [...new Set(state.settings.sidebarIcons.visible)].filter((icon) =>
-        DEFAULT_SIDEBAR_ICONS.includes(icon)
+        allIcons.includes(icon)
       )
       state.settings.sidebarIcons.disabled = [...new Set(state.settings.sidebarIcons.disabled)].filter((icon) =>
-        DEFAULT_SIDEBAR_ICONS.includes(icon)
+        allIcons.includes(icon)
       )
       return state
     } catch (error) {
