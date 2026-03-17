@@ -79,6 +79,8 @@ export const isKnowledgeSitemapItem = (item: KnowledgeItem): item is KnowledgeSi
 export type KnowledgeGeneralItem = KnowledgeItem & {
   content: string
 }
+export type ChunkingStrategy = 'recursive' | 'semantic' | 'structural'
+
 export interface KnowledgeBase {
   id: string
   name: string
@@ -93,6 +95,7 @@ export interface KnowledgeBase {
   chunkSize?: number
   chunkOverlap?: number
   threshold?: number
+  chunkingStrategy?: ChunkingStrategy
   rerankModel?: Model
   // topN?: number
   // preprocessing?: boolean

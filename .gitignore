@@ -102,3 +102,7 @@ packages/sensevoice-server/models/**/*.onnx
 # YOUR_MEMORY_FILE_PATH
 
 .sessions/
+
+
+tests/**/*
+test

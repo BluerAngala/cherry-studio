@@ -1,10 +1,12 @@
 import { BaseLoader } from '@cherrystudio/embedjs-interfaces'
 import { cleanString } from '@cherrystudio/embedjs-utils'
-import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters'
 import { loggerService } from '@logger'
 import md5 from 'md5'
 import type { OfficeParserConfig } from 'officeparser'
 import { parseOfficeAsync } from 'officeparser'
+
+import { legalCleanString } from '../../utils/text'
+import { LegalRecursiveCharacterTextSplitter } from '../splitter/LegalRecursiveCharacterTextSplitter'
 
 const logger = loggerService.withContext('OdLoader')
 
@@ -55,12 +57,12 @@ export class OdLoader<OdType> extends BaseLoader<{ type: string }> {
     if (!this.extractedText) {
       await this.extractTextFromOdt()
     }
-    const chunker = new RecursiveCharacterTextSplitter({
+    const chunker = new LegalRecursiveCharacterTextSplitter({
       chunkSize: this.chunkSize,
       chunkOverlap: this.chunkOverlap
     })
 
-    const chunks = await chunker.splitText(cleanString(this.extractedText))
+    const chunks = await chunker.splitText(legalCleanString(cleanString(this.extractedText)))
 
     for (const chunk of chunks) {
       yield {

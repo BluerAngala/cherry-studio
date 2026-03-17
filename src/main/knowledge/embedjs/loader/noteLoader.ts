@@ -1,7 +1,9 @@
 import { BaseLoader } from '@cherrystudio/embedjs-interfaces'
 import { cleanString } from '@cherrystudio/embedjs-utils'
-import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters'
 import md5 from 'md5'
+
+import { legalCleanString } from '../../utils/text'
+import { LegalRecursiveCharacterTextSplitter } from '../splitter/LegalRecursiveCharacterTextSplitter'
 
 export class NoteLoader extends BaseLoader<{ type: 'NoteLoader' }> {
   private readonly text: string
@@ -24,12 +26,12 @@ export class NoteLoader extends BaseLoader<{ type: 'NoteLoader' }> {
   }
 
   override async *getUnfilteredChunks() {
-    const chunker = new RecursiveCharacterTextSplitter({
+    const chunker = new LegalRecursiveCharacterTextSplitter({
       chunkSize: this.chunkSize,
       chunkOverlap: this.chunkOverlap
     })
 
-    const chunks = await chunker.splitText(cleanString(this.text))
+    const chunks = await chunker.splitText(legalCleanString(cleanString(this.text)))
 
     for (const chunk of chunks) {
       yield {

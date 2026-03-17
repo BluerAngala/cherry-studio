@@ -1,5 +1,5 @@
 import type { RAGApplication } from '@cherrystudio/embedjs'
-import { JsonLoader, LocalPathLoader, TextLoader } from '@cherrystudio/embedjs'
+import { JsonLoader, LocalPathLoader } from '@cherrystudio/embedjs'
 import type { AddLoaderReturn } from '@cherrystudio/embedjs-interfaces'
 import { WebLoader } from '@cherrystudio/embedjs-loader-web'
 import { loggerService } from '@logger'
@@ -9,20 +9,24 @@ import type { FileMetadata, KnowledgeBaseParams } from '@types'
 
 import { DraftsExportLoader } from './draftsExportLoader'
 import { EpubLoader } from './epubLoader'
+import { MarkdownLegalLoader } from './markdownLegalLoader'
+import { NoteLoader } from './noteLoader'
 import { OdLoader, OdType } from './odLoader'
+import { OfficeLegalLoader } from './officeLegalLoader'
+import { PdfLegalLoader } from './pdfLegalLoader'
 
 const logger = loggerService.withContext('KnowledgeLoader')
 
 // 文件扩展名到加载器类型的映射
 const FILE_LOADER_MAP: Record<string, string> = {
   // 内置类型
-  '.pdf': 'common',
+  '.pdf': 'pdf_legal',
   '.csv': 'common',
-  '.doc': 'common',
-  '.docx': 'common',
-  '.pptx': 'common',
-  '.xlsx': 'common',
-  '.md': 'common',
+  '.doc': 'office_legal',
+  '.docx': 'office_legal',
+  '.pptx': 'office_legal',
+  '.xlsx': 'office_legal',
+  '.md': 'markdown_legal',
   // OD类型
   '.odt': 'od',
   '.ods': 'od',
@@ -98,6 +102,43 @@ export async function addFileLoader(
       // OD类型处理
       loaderReturn = await addOdLoader(ragApplication, file, base, forceReload)
       break
+
+    case 'pdf_legal':
+      // 法律优化 PDF 处理
+      loaderReturn = await ragApplication.addLoader(
+        new PdfLegalLoader({
+          filePath: filePath,
+          chunkSize: base.chunkSize,
+          chunkOverlap: base.chunkOverlap
+        }) as any,
+        forceReload
+      )
+      break
+
+    case 'office_legal':
+      // 法律优化 Office 处理
+      loaderReturn = await ragApplication.addLoader(
+        new OfficeLegalLoader({
+          filePath: filePath,
+          chunkSize: base.chunkSize,
+          chunkOverlap: base.chunkOverlap
+        }) as any,
+        forceReload
+      )
+      break
+
+    case 'markdown_legal':
+      // 法律优化 Markdown 处理
+      loaderReturn = await ragApplication.addLoader(
+        new MarkdownLegalLoader({
+          text: await readTextFileWithAutoEncoding(filePath),
+          filePath: filePath,
+          chunkSize: base.chunkSize,
+          chunkOverlap: base.chunkOverlap
+        }) as any,
+        forceReload
+      )
+      break
     case 'epub':
       // epub类型处理
       loaderReturn = await ragApplication.addLoader(
@@ -145,10 +186,11 @@ export async function addFileLoader(
     // oxlint-disable-next-line no-fallthrough 利用switch特性，刻意不break
     default:
       // 文本类型处理（默认）
-      // 如果是其他文本类型且尚未读取文件，则读取文件
+      // 使用 NoteLoader 替代 TextLoader，因为 NoteLoader 已集成 LegalRecursiveCharacterTextSplitter 和文本清理逻辑
       loaderReturn = await ragApplication.addLoader(
-        new TextLoader({
+        new NoteLoader({
           text: await readTextFileWithAutoEncoding(filePath),
+          sourceUrl: filePath,
           chunkSize: base.chunkSize,
           chunkOverlap: base.chunkOverlap
         }) as any,

@@ -1,11 +1,13 @@
 import { BaseLoader } from '@cherrystudio/embedjs-interfaces'
 import { cleanString } from '@cherrystudio/embedjs-utils'
-import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters'
 import { loggerService } from '@logger'
 import { getTempDir } from '@main/utils/file'
 import EPub from 'epub'
 import * as fs from 'fs'
 import path from 'path'
+
+import { legalCleanString } from '../../utils/text'
+import { LegalRecursiveCharacterTextSplitter } from '../splitter/LegalRecursiveCharacterTextSplitter'
 
 const logger = loggerService.withContext('EpubLoader')
 
@@ -226,13 +228,13 @@ export class EpubLoader extends BaseLoader<Record<string, string | number | bool
     logger.info(`[EpubLoader] 书名：${this.metadata?.title || '未知书名'} 文本大小：${this.extractedText.length}`)
 
     // 创建文本分块器
-    const chunker = new RecursiveCharacterTextSplitter({
+    const chunker = new LegalRecursiveCharacterTextSplitter({
       chunkSize: this.chunkSize,
       chunkOverlap: this.chunkOverlap
     })
 
     // 清理并分割文本
-    const chunks = await chunker.splitText(cleanString(this.extractedText))
+    const chunks = await chunker.splitText(legalCleanString(cleanString(this.extractedText)))
 
     // 为每个文本块添加元数据
     for (const chunk of chunks) {
