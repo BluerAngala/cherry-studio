@@ -5272,6 +5272,9 @@
         "title": "Servicio OCR"
       },
       "preprocess": {
+        "auto": {
+          "description": "[to be translated]:Automatically detect PDF type, parse text-based PDFs directly, prompt OCR configuration for scanned documents"
+        },
         "paddleocr": {
           "aistudio_access_token": "Token de acceso de la Comunidad AI Studio",
           "api_url": "URL de la API",

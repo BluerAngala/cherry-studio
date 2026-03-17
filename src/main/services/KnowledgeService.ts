@@ -728,31 +728,35 @@ class KnowledgeService {
     userId: string
   ): Promise<FileMetadata> => {
     let fileToProcess: FileMetadata = file
-    if (base.preprocessProvider && file.ext.toLowerCase() === '.pdf') {
-      try {
-        const provider = new PreprocessProvider(base.preprocessProvider.provider, userId)
-        const filePath = fileStorage.getFilePathById(file)
-        // Check if file has already been preprocessed
-        const alreadyProcessed = await provider.checkIfAlreadyProcessed(file)
-        if (alreadyProcessed) {
-          logger.debug(`File already preprocess processed, using cached result: ${filePath}`)
-          return alreadyProcessed
-        }
 
-        // Execute preprocessing
-        logger.debug(`Starting preprocess processing for scanned PDF: ${filePath}`)
-        const { processedFile } = await provider.parseFile(item.id, file)
-        fileToProcess = processedFile
-        const mainWindow = windowService.getMainWindow()
-        mainWindow?.webContents.send('file-preprocess-finished', {
-          itemId: item.id
-        })
-      } catch (err) {
-        logger.error(`Preprocess processing failed: ${err}`)
-        // If preprocessing fails, use original file
-        // fileToProcess = file
+    if (file.ext.toLowerCase() !== '.pdf') {
+      return fileToProcess
+    }
+
+    const preprocessProvider = base.preprocessProvider?.provider
+    const provider = new PreprocessProvider(preprocessProvider || { id: 'auto', name: 'Auto' }, userId)
+    const filePath = fileStorage.getFilePathById(file)
+
+    try {
+      const alreadyProcessed = await provider.checkIfAlreadyProcessed(file)
+      if (alreadyProcessed) {
+        logger.debug(`File already preprocess processed, using cached result: ${filePath}`)
+        return alreadyProcessed
+      }
+
+      logger.debug(`Starting preprocess processing for PDF: ${filePath}`)
+      const { processedFile } = await provider.parseFile(item.id, file)
+      fileToProcess = processedFile
+      const mainWindow = windowService.getMainWindow()
+      mainWindow?.webContents.send('file-preprocess-finished', {
+        itemId: item.id
+      })
+    } catch (err) {
+      logger.error(`Preprocess processing failed: ${err}`)
+      if (preprocessProvider && preprocessProvider.id !== 'auto') {
         throw new Error(`Preprocess processing failed: ${err}`)
       }
+      logger.warn(`Auto preprocess failed, falling back to original file: ${filePath}`)
     }
 
     return fileToProcess

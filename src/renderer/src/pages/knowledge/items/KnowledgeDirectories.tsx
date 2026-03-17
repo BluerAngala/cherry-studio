@@ -88,42 +88,48 @@ const KnowledgeDirectories: FC<KnowledgeContentProps> = ({ selectedBase, progres
           scrollerStyle={{ paddingRight: 2 }}
           itemContainerStyle={{ paddingBottom: 10 }}
           autoHideScrollbar>
-          {(item) => (
-            <FileItem
-              key={item.id}
-              fileInfo={{
-                name: (
-                  <ClickableSpan onClick={() => window.api.file.openPath(item.content as string)}>
-                    <Ellipsis>
-                      <Tooltip title={item.content as string}>{item.content as string}</Tooltip>
-                    </Ellipsis>
-                  </ClickableSpan>
-                ),
-                ext: '.folder',
-                extra: getDisplayTime(item),
-                actions: (
-                  <FlexAlignCenter>
-                    {item.uniqueId && <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />}
-                    <StatusIconWrapper>
-                      <StatusIcon
-                        sourceId={item.id}
-                        base={base}
-                        getProcessingStatus={getProcessingStatus}
-                        progress={progressMap.get(item.id)}
-                        type="directory"
+          {(item) => {
+            const status = getProcessingStatus(item.id)
+            const isFailed = status === 'failed'
+            return (
+              <FileItem
+                key={item.id}
+                fileInfo={{
+                  name: (
+                    <ClickableSpan onClick={() => window.api.file.openPath(item.content as string)}>
+                      <Ellipsis>
+                        <Tooltip title={item.content as string}>{item.content as string}</Tooltip>
+                      </Ellipsis>
+                    </ClickableSpan>
+                  ),
+                  ext: '.folder',
+                  extra: getDisplayTime(item),
+                  actions: (
+                    <FlexAlignCenter>
+                      {(item.uniqueId || isFailed) && (
+                        <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                      )}
+                      <StatusIconWrapper>
+                        <StatusIcon
+                          sourceId={item.id}
+                          base={base}
+                          getProcessingStatus={getProcessingStatus}
+                          progress={progressMap.get(item.id)}
+                          type="directory"
+                        />
+                      </StatusIconWrapper>
+                      <Button
+                        type="text"
+                        danger
+                        onClick={() => removeItem(item)}
+                        icon={<DeleteIcon size={14} className="lucide-custom" />}
                       />
-                    </StatusIconWrapper>
-                    <Button
-                      type="text"
-                      danger
-                      onClick={() => removeItem(item)}
-                      icon={<DeleteIcon size={14} className="lucide-custom" />}
-                    />
-                  </FlexAlignCenter>
-                )
-              }}
-            />
-          )}
+                    </FlexAlignCenter>
+                  )
+                }}
+              />
+            )
+          }}
         </DynamicVirtualList>
       </ItemFlexColumn>
     </ItemContainer>

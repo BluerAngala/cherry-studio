@@ -185,6 +185,8 @@ const KnowledgeFiles: FC<KnowledgeContentProps> = ({ selectedBase, progressMap, 
                 return null
               }
               const file = item.content
+              const status = getProcessingStatus(item.id)
+              const isFailed = status === 'failed'
               return (
                 <div style={{ height: '75px', paddingTop: '12px' }}>
                   <FileItem
@@ -201,7 +203,7 @@ const KnowledgeFiles: FC<KnowledgeContentProps> = ({ selectedBase, progressMap, 
                       extra: `${getDisplayTime(item)} · ${formatFileSize(file.size)}`,
                       actions: (
                         <FlexAlignCenter>
-                          {item.uniqueId && (
+                          {(item.uniqueId || isFailed) && (
                             <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
                           )}
                           {showPreprocessIcon(item) && (

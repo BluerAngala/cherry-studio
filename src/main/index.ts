@@ -44,6 +44,9 @@ import { speechService } from './services/speech'
 
 const logger = loggerService.withContext('MainEntry')
 
+// Disable Electron Security Warnings
+process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
+
 // enable local crash reports
 crashReporter.start({
   companyName: 'CherryHQ',

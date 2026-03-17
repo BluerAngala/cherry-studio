@@ -1,3 +1,4 @@
+import { loggerService } from '@logger'
 import { db } from '@renderer/databases'
 import KnowledgeQueue from '@renderer/queue/KnowledgeQueue'
 import { getKnowledgeBaseParams } from '@renderer/services/KnowledgeService'
@@ -28,6 +29,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useAssistants } from './useAssistant'
 import { useAssistantPresets } from './useAssistantPresets'
 import { useTimer } from './useTimer'
+
+const logger = loggerService.withContext('useKnowledge')
 
 export const useKnowledge = (baseId: string) => {
   const dispatch = useAppDispatch()
@@ -148,44 +151,38 @@ export const useKnowledge = (baseId: string) => {
       return
     }
 
-    if (!base || !item?.uniqueId || !item?.uniqueIds) {
+    if (!base) {
       return
     }
-    if (base && item.uniqueId && item.uniqueIds) {
-      await window.api.knowledgeBase.remove({
-        uniqueId: item.uniqueId,
-        uniqueIds: item.uniqueIds,
-        base: getKnowledgeBaseParams(base)
-      })
-      updateItem({
-        ...item,
-        processingStatus: 'pending',
-        processingProgress: 0,
-        processingError: '',
-        uniqueId: undefined,
-        retryCount: 0,
-        updated_at: Date.now()
-      })
-      checkAllBases()
+
+    // 如果存在 uniqueId，尝试删除远程记录
+    if (item.uniqueId || (item.uniqueIds && item.uniqueIds.length > 0)) {
+      try {
+        await window.api.knowledgeBase.remove({
+          uniqueId: item.uniqueId || '',
+          uniqueIds: item.uniqueIds || [],
+          base: getKnowledgeBaseParams(base)
+        })
+      } catch (error) {
+        logger.error('Failed to remove item before refresh:', error as Error)
+      }
     }
 
-    const removalParams = {
-      uniqueId: item.uniqueId,
-      uniqueIds: item.uniqueIds,
-      base: getKnowledgeBaseParams(base)
-    }
+    dispatch(
+      updateItemAction({
+        baseId,
+        item: {
+          ...item,
+          processingStatus: 'pending',
+          processingProgress: 0,
+          processingError: '',
+          uniqueId: undefined,
+          retryCount: 0,
+          updated_at: Date.now()
+        }
+      })
+    )
 
-    await window.api.knowledgeBase.remove(removalParams)
-
-    updateItem({
-      ...item,
-      processingStatus: 'pending',
-      processingProgress: 0,
-      processingError: '',
-      uniqueId: undefined,
-      retryCount: 0,
-      updated_at: Date.now()
-    })
     setTimeout(() => KnowledgeQueue.checkAllBases(), 0)
   }
 

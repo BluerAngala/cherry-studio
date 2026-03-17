@@ -1,5 +1,6 @@
 import type { PreprocessProvider } from '@types'
 
+import AutoPreprocessProvider from './AutoPreprocessProvider'
 import type BasePreprocessProvider from './BasePreprocessProvider'
 import DefaultPreprocessProvider from './DefaultPreprocessProvider'
 import Doc2xPreprocessProvider from './Doc2xPreprocessProvider'
@@ -11,6 +12,8 @@ import PaddleocrPreprocessProvider from './PaddleocrPreprocessProvider'
 export default class PreprocessProviderFactory {
   static create(provider: PreprocessProvider, userId?: string): BasePreprocessProvider {
     switch (provider.id) {
+      case 'auto':
+        return new AutoPreprocessProvider(provider, userId)
       case 'doc2x':
         return new Doc2xPreprocessProvider(provider)
       case 'mistral':

@@ -107,45 +107,51 @@ const KnowledgeSitemaps: FC<KnowledgeContentProps> = ({ selectedBase }) => {
           scrollerStyle={{ paddingRight: 2 }}
           itemContainerStyle={{ paddingBottom: 10 }}
           autoHideScrollbar>
-          {(item) => (
-            <FileItem
-              key={item.id}
-              fileInfo={{
-                name: (
-                  <ClickableSpan>
-                    <Tooltip title={item.content as string}>
-                      <Ellipsis>
-                        <a href={item.content as string} target="_blank" rel="noopener noreferrer">
-                          {item.content as string}
-                        </a>
-                      </Ellipsis>
-                    </Tooltip>
-                  </ClickableSpan>
-                ),
-                ext: '.sitemap',
-                extra: getDisplayTime(item),
-                actions: (
-                  <FlexAlignCenter>
-                    {item.uniqueId && <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />}
-                    <StatusIconWrapper>
-                      <StatusIcon
-                        sourceId={item.id}
-                        base={base}
-                        getProcessingStatus={getProcessingStatus}
-                        type="sitemap"
+          {(item) => {
+            const status = getProcessingStatus(item.id)
+            const isFailed = status === 'failed'
+            return (
+              <FileItem
+                key={item.id}
+                fileInfo={{
+                  name: (
+                    <ClickableSpan>
+                      <Tooltip title={item.content as string}>
+                        <Ellipsis>
+                          <a href={item.content as string} target="_blank" rel="noopener noreferrer">
+                            {item.content as string}
+                          </a>
+                        </Ellipsis>
+                      </Tooltip>
+                    </ClickableSpan>
+                  ),
+                  ext: '.sitemap',
+                  extra: getDisplayTime(item),
+                  actions: (
+                    <FlexAlignCenter>
+                      {(item.uniqueId || isFailed) && (
+                        <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                      )}
+                      <StatusIconWrapper>
+                        <StatusIcon
+                          sourceId={item.id}
+                          base={base}
+                          getProcessingStatus={getProcessingStatus}
+                          type="sitemap"
+                        />
+                      </StatusIconWrapper>
+                      <Button
+                        type="text"
+                        danger
+                        onClick={() => removeItem(item)}
+                        icon={<DeleteIcon size={14} className="lucide-custom" />}
                       />
-                    </StatusIconWrapper>
-                    <Button
-                      type="text"
-                      danger
-                      onClick={() => removeItem(item)}
-                      icon={<DeleteIcon size={14} className="lucide-custom" />}
-                    />
-                  </FlexAlignCenter>
-                )
-              }}
-            />
-          )}
+                    </FlexAlignCenter>
+                  )
+                }}
+              />
+            )
+          }}
         </DynamicVirtualList>
       </ItemFlexColumn>
     </ItemContainer>

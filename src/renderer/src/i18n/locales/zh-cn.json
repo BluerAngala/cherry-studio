@@ -5272,6 +5272,9 @@
         "title": "OCR 服务"
       },
       "preprocess": {
+        "auto": {
+          "description": "自动检测 PDF 类型，文字版直接解析，扫描件提示配置 OCR 服务"
+        },
         "paddleocr": {
           "aistudio_access_token": "星河社区访问令牌",
           "api_url": "API URL",

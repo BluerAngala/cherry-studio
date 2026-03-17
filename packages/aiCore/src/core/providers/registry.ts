@@ -99,7 +99,7 @@ export function registerProviderConfig(config: ProviderConfig): boolean {
 
     // 检查是否与已有配置冲突（包括内置配置）
     if (providerConfigs.has(config.id)) {
-      console.warn(`ProviderConfig "${config.id}" already exists, will override`)
+      // console.debug(`ProviderConfig "${config.id}" already exists, will override`)
     }
 
     // 存储配置（内置和用户配置统一处理）
@@ -109,7 +109,7 @@ export function registerProviderConfig(config: ProviderConfig): boolean {
     if (config.aliases && config.aliases.length > 0) {
       config.aliases.forEach((alias) => {
         if (providerConfigAliases.has(alias)) {
-          console.warn(`ProviderConfig alias "${alias}" already exists, will override`)
+          // console.debug(`ProviderConfig alias "${alias}" already exists, will override`)
         }
         providerConfigAliases.set(alias, config.id)
       })

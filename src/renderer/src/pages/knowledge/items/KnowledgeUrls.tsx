@@ -135,62 +135,72 @@ const KnowledgeUrls: FC<KnowledgeContentProps> = ({ selectedBase }) => {
           scrollerStyle={{ paddingRight: 2 }}
           itemContainerStyle={{ paddingBottom: 10 }}
           autoHideScrollbar>
-          {(item) => (
-            <FileItem
-              key={item.id}
-              fileInfo={{
-                name: (
-                  <Dropdown
-                    menu={{
-                      items: [
-                        {
-                          key: 'edit',
-                          icon: <EditIcon size={14} />,
-                          label: t('knowledge.edit_remark'),
-                          onClick: () => handleEditRemark(item)
-                        },
-                        {
-                          key: 'copy',
-                          icon: <CopyIcon size={14} />,
-                          label: t('common.copy'),
-                          onClick: () => {
-                            navigator.clipboard.writeText(item.content as string)
-                            window.toast.success(t('message.copied'))
+          {(item) => {
+            const status = getProcessingStatus(item.id)
+            const isFailed = status === 'failed'
+            return (
+              <FileItem
+                key={item.id}
+                fileInfo={{
+                  name: (
+                    <Dropdown
+                      menu={{
+                        items: [
+                          {
+                            key: 'edit',
+                            icon: <EditIcon size={14} />,
+                            label: t('knowledge.edit_remark'),
+                            onClick: () => handleEditRemark(item)
+                          },
+                          {
+                            key: 'copy',
+                            icon: <CopyIcon size={14} />,
+                            label: t('common.copy'),
+                            onClick: () => {
+                              navigator.clipboard.writeText(item.content as string)
+                            }
                           }
-                        }
-                      ]
-                    }}
-                    trigger={['contextMenu']}>
-                    <ClickableSpan>
-                      <Tooltip title={item.content as string}>
-                        <Ellipsis>
-                          <a href={item.content as string} target="_blank" rel="noopener noreferrer">
-                            {item.remark || (item.content as string)}
-                          </a>
-                        </Ellipsis>
-                      </Tooltip>
-                    </ClickableSpan>
-                  </Dropdown>
-                ),
-                ext: '.url',
-                extra: getDisplayTime(item),
-                actions: (
-                  <FlexAlignCenter>
-                    {item.uniqueId && <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />}
-                    <StatusIconWrapper>
-                      <StatusIcon sourceId={item.id} base={base} getProcessingStatus={getProcessingStatus} type="url" />
-                    </StatusIconWrapper>
-                    <Button
-                      type="text"
-                      danger
-                      onClick={() => removeItem(item)}
-                      icon={<DeleteIcon size={14} className="lucide-custom" />}
-                    />
-                  </FlexAlignCenter>
-                )
-              }}
-            />
-          )}
+                        ]
+                      }}
+                      trigger={['contextMenu']}>
+                      <ClickableSpan>
+                        <Tooltip title={item.content as string}>
+                          <Ellipsis>
+                            <a href={item.content as string} target="_blank" rel="noopener noreferrer">
+                              {item.remark || (item.content as string)}
+                            </a>
+                          </Ellipsis>
+                        </Tooltip>
+                      </ClickableSpan>
+                    </Dropdown>
+                  ),
+                  ext: '.url',
+                  extra: getDisplayTime(item),
+                  actions: (
+                    <FlexAlignCenter>
+                      {(item.uniqueId || isFailed) && (
+                        <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                      )}
+                      <StatusIconWrapper>
+                        <StatusIcon
+                          sourceId={item.id}
+                          base={base}
+                          getProcessingStatus={getProcessingStatus}
+                          type="url"
+                        />
+                      </StatusIconWrapper>
+                      <Button
+                        type="text"
+                        danger
+                        onClick={() => removeItem(item)}
+                        icon={<DeleteIcon size={14} className="lucide-custom" />}
+                      />
+                    </FlexAlignCenter>
+                  )
+                }}
+              />
+            )
+          }}
         </DynamicVirtualList>
       </ItemFlexColumn>
     </ItemContainer>

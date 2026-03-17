@@ -5272,6 +5272,9 @@
         "title": "OCR 服務"
       },
       "preprocess": {
+        "auto": {
+          "description": "[to be translated]:Automatically detect PDF type, parse text-based PDFs directly, prompt OCR configuration for scanned documents"
+        },
         "paddleocr": {
           "aistudio_access_token": "星河社區訪問令牌",
           "api_url": "API 網址",

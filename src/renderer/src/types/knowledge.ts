@@ -105,6 +105,7 @@ export interface KnowledgeBase {
 export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export const PreprocessProviderIds = {
+  auto: 'auto',
   doc2x: 'doc2x',
   mistral: 'mistral',
   mineru: 'mineru',

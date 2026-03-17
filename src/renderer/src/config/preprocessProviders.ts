@@ -6,6 +6,8 @@ import type { PreprocessProviderId } from '@renderer/types'
 
 export function getPreprocessProviderLogo(providerId: PreprocessProviderId) {
   switch (providerId) {
+    case 'auto':
+      return undefined
     case 'doc2x':
       return Doc2xLogo
     case 'mistral':
@@ -21,9 +23,12 @@ export function getPreprocessProviderLogo(providerId: PreprocessProviderId) {
   }
 }
 
-type PreprocessProviderConfig = { websites: { official: string; apiKey: string } }
+type PreprocessProviderConfig = { websites?: { official: string; apiKey: string }; description?: string }
 
 export const PREPROCESS_PROVIDER_CONFIG: Record<PreprocessProviderId, PreprocessProviderConfig> = {
+  auto: {
+    description: 'settings.tool.preprocess.auto.description'
+  },
   doc2x: {
     websites: {
       official: 'https://doc2x.noedgeai.com',
