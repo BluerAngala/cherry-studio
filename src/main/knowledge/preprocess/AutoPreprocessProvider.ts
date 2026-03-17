@@ -117,7 +117,7 @@ export default class AutoPreprocessProvider extends BasePreprocessProvider {
               ...file,
               name: finalName,
               path: finalPath,
-              ext: 'md',
+              ext: '.md',
               size: Buffer.byteLength(fullText),
               created_at: new Date().toISOString()
             }
@@ -152,7 +152,11 @@ export default class AutoPreprocessProvider extends BasePreprocessProvider {
     }
 
     try {
-      const data = await pdf(buffer)
+      const pdfParser = typeof pdf === 'function' ? pdf : (pdf as any).default
+      if (typeof pdfParser !== 'function') {
+        throw new Error('pdf-parse is not a function')
+      }
+      const data = await pdfParser(buffer)
       textLength = data.text.trim().length
       if (pageCount === 0 && data.numpages) {
         pageCount = data.numpages

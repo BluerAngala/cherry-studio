@@ -234,12 +234,8 @@ class KnowledgeService {
     logger.info(`Startup cleanup completed: ${deletedCount}/${pendingDeleteIds.length} knowledge bases deleted`)
   }
 
-  private getRagApplication = async ({
-    id,
-    embedApiClient,
-    dimensions,
-    documentCount
-  }: KnowledgeBaseParams): Promise<RAGApplication> => {
+  private getRagApplication = async (base: KnowledgeBaseParams): Promise<RAGApplication> => {
+    const { id, embedApiClient, dimensions, documentCount } = base
     if (this.ragApplications.has(id)) {
       return this.ragApplications.get(id)!
     }
@@ -729,7 +725,15 @@ class KnowledgeService {
     item: KnowledgeItem,
     userId: string
   ): Promise<FileMetadata> => {
-    let fileToProcess: FileMetadata = file
+    // Determine the actual file path:
+    // 1. Try file.path directly (it might be an external path from directoryTask)
+    // 2. Fall back to internal storage path if not found
+    let filePath = file.path
+    if (!filePath || !fs.existsSync(filePath)) {
+      filePath = fileStorage.getFilePathById(file)
+    }
+
+    let fileToProcess: FileMetadata = { ...file, path: filePath }
 
     if (file.ext.toLowerCase() !== '.pdf') {
       return fileToProcess
@@ -737,7 +741,6 @@ class KnowledgeService {
 
     const preprocessProvider = base.preprocessProvider?.provider
     const provider = new PreprocessProvider(preprocessProvider || { id: 'auto', name: 'Auto' }, userId)
-    const filePath = fileStorage.getFilePathById(file)
 
     try {
       const alreadyProcessed = await provider.checkIfAlreadyProcessed(file)
@@ -747,7 +750,7 @@ class KnowledgeService {
       }
 
       logger.debug(`Starting preprocess processing for PDF: ${filePath}`)
-      const { processedFile } = await provider.parseFile(item.id, file)
+      const { processedFile } = await provider.parseFile(item.id, fileToProcess)
       fileToProcess = processedFile
       const mainWindow = windowService.getMainWindow()
       mainWindow?.webContents.send('file-preprocess-finished', {

@@ -1,5 +1,6 @@
 import { BaseLoader } from '@cherrystudio/embedjs-interfaces'
 import { cleanString } from '@cherrystudio/embedjs-utils'
+import { loggerService } from '@logger'
 import type { ChunkingStrategy } from '@types'
 import * as fs from 'fs'
 import md5 from 'md5'
@@ -9,6 +10,8 @@ import { legalCleanString } from '../../utils/text'
 import { ChonkieRecursiveSplitter } from '../splitter/ChonkieRecursiveSplitter'
 import { LegalRecursiveCharacterTextSplitter } from '../splitter/LegalRecursiveCharacterTextSplitter'
 import { SemanticLegalSplitter } from '../splitter/SemanticLegalSplitter'
+
+const logger = loggerService.withContext('PdfLegalLoader')
 
 /**
  * 专门为法律文档优化的 PDF 加载器
@@ -40,9 +43,31 @@ export class PdfLegalLoader extends BaseLoader<{ type: 'PdfLegalLoader' }> {
 
   override async *getUnfilteredChunks() {
     // 1. 读取并解析 PDF
-    const dataBuffer = fs.readFileSync(this.filePath)
-    const data = await pdf(dataBuffer)
-    const rawText = data.text
+    let dataBuffer: Buffer
+    try {
+      dataBuffer = fs.readFileSync(this.filePath)
+    } catch (e) {
+      logger.error(`Failed to read file: ${this.filePath}`, e as Error)
+      throw new Error(`Failed to read PDF file: ${e instanceof Error ? e.message : String(e)}`)
+    }
+
+    let data: any
+    try {
+      // 兼容某些环境下 pdf-parse 的导入问题
+      const pdfParser = typeof pdf === 'function' ? pdf : (pdf as any).default
+      if (typeof pdfParser !== 'function') {
+        throw new Error('pdf-parse is not a function')
+      }
+      data = await pdfParser(dataBuffer)
+    } catch (e) {
+      logger.error(`Failed to parse PDF: ${this.filePath}`, e as Error)
+      throw new Error(`Failed to parse PDF content: ${e instanceof Error ? e.message : String(e)}`)
+    }
+
+    const rawText = data?.text || ''
+    if (!rawText.trim()) {
+      logger.warn(`PDF extracted text is empty: ${this.filePath}`)
+    }
 
     // 2. 应用法律文本清理
     const cleanedText = legalCleanString(cleanString(rawText))

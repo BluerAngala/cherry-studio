@@ -38,10 +38,19 @@ export class OfficeLegalLoader extends BaseLoader<{ type: 'OfficeLegalLoader' }>
 
   override async *getUnfilteredChunks() {
     // 1. 解析 Office 文件
-    const rawText = await parseOfficeAsync(this.filePath, {
-      newlineDelimiter: ' ',
-      ignoreNotes: false
-    })
+    let rawText = ''
+    try {
+      rawText = await parseOfficeAsync(this.filePath, {
+        newlineDelimiter: ' ',
+        ignoreNotes: false
+      })
+    } catch (e) {
+      throw new Error(`Failed to parse Office file: ${e instanceof Error ? e.message : String(e)}`)
+    }
+
+    if (!rawText) {
+      rawText = ''
+    }
 
     // 2. 应用法律文本清理
     const cleanedText = legalCleanString(cleanString(rawText))
