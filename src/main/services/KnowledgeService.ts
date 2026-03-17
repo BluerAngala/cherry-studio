@@ -25,6 +25,7 @@ import { loggerService } from '@logger'
 import Embeddings from '@main/knowledge/embedjs/embeddings/Embeddings'
 import { addFileLoader } from '@main/knowledge/embedjs/loader'
 import { NoteLoader } from '@main/knowledge/embedjs/loader/noteLoader'
+import AutoPreprocessProvider from '@main/knowledge/preprocess/AutoPreprocessProvider'
 import PreprocessProvider from '@main/knowledge/preprocess/PreprocessProvider'
 import Reranker from '@main/knowledge/reranker/Reranker'
 import { fileStorage } from '@main/services/FileStorage'
@@ -728,30 +729,49 @@ class KnowledgeService {
     userId: string
   ): Promise<FileMetadata> => {
     let fileToProcess: FileMetadata = file
-    if (base.preprocessProvider && file.ext.toLowerCase() === '.pdf') {
-      try {
-        const provider = new PreprocessProvider(base.preprocessProvider.provider, userId)
-        const filePath = fileStorage.getFilePathById(file)
-        // Check if file has already been preprocessed
-        const alreadyProcessed = await provider.checkIfAlreadyProcessed(file)
-        if (alreadyProcessed) {
-          logger.debug(`File already preprocess processed, using cached result: ${filePath}`)
-          return alreadyProcessed
-        }
 
-        // Execute preprocessing
-        logger.debug(`Starting preprocess processing for scanned PDF: ${filePath}`)
-        const { processedFile } = await provider.parseFile(item.id, file)
-        fileToProcess = processedFile
-        const mainWindow = windowService.getMainWindow()
-        mainWindow?.webContents.send('file-preprocess-finished', {
-          itemId: item.id
-        })
-      } catch (err) {
-        logger.error(`Preprocess processing failed: ${err}`)
-        // If preprocessing fails, use original file
-        // fileToProcess = file
-        throw new Error(`Preprocess processing failed: ${err}`)
+    if (file.ext.toLowerCase() !== '.pdf') {
+      return fileToProcess
+    }
+
+    const preprocessProvider = base.preprocessProvider?.provider
+    const provider = preprocessProvider
+      ? new PreprocessProvider(preprocessProvider, userId)
+      : new AutoPreprocessProvider({ id: 'paddleocr', name: 'Auto' }, userId)
+    const filePath = fileStorage.getFilePathById(file)
+
+    try {
+      const alreadyProcessed = await provider.checkIfAlreadyProcessed(file)
+      if (alreadyProcessed) {
+        logger.debug(`File already preprocess processed, using cached result: ${filePath}`)
+        return alreadyProcessed
+      }
+
+      logger.debug(`Starting preprocess processing for PDF: ${filePath}`)
+      const { processedFile } = await provider.parseFile(item.id, file)
+      fileToProcess = processedFile
+      const mainWindow = windowService.getMainWindow()
+      mainWindow?.webContents.send('file-preprocess-finished', {
+        itemId: item.id
+      })
+    } catch (err) {
+      logger.error(`Preprocess processing failed: ${err}`)
+      if (preprocessProvider) {
+        logger.warn(`Preprocess failed, trying local auto preprocess fallback: ${filePath}`)
+
+        try {
+          const autoProvider = new AutoPreprocessProvider(preprocessProvider, userId)
+          const { processedFile } = await autoProvider.parseFile(item.id, file)
+          fileToProcess = processedFile
+          const mainWindow = windowService.getMainWindow()
+          mainWindow?.webContents.send('file-preprocess-finished', {
+            itemId: item.id
+          })
+        } catch (autoErr) {
+          logger.warn(`Local auto preprocess fallback failed, using original file: ${filePath}. Error: ${autoErr}`)
+        }
+      } else {
+        logger.warn(`Auto preprocess failed, using original file: ${filePath}`)
       }
     }
 

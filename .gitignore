@@ -75,3 +75,14 @@ test-results
 YOUR_MEMORY_FILE_PATH
 
 .sessions/
+
+# Model artifacts
+packages/sensevoice-server/models/
+**/checkpoints/
+**/weights/
+*.onnx
+*.gguf
+*.safetensors
+*.ckpt
+*.pt
+*.pth

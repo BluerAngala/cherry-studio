@@ -79,8 +79,12 @@ const StatusIcon: FC<StatusIconProps> = ({
         )
       case 'failed':
         return (
-          <Tooltip title={errorText || t('knowledge.status_failed')} placement="left">
-            <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+          <Tooltip
+            title={errorText || t('knowledge.status_failed')}
+            placement="left"
+            trigger={['hover']}
+            mouseEnterDelay={0.2}>
+            <CloseCircleOutlined style={{ color: '#ff4d4f', cursor: 'pointer' }} />
           </Tooltip>
         )
       default:
