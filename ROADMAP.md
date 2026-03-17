@@ -35,10 +35,11 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 - [x] MCP（模型上下文协议）服务支持
 - [x] 跨平台支持（Windows、Mac、Linux）
 
-#### 🎙️ 语音助手功能
+#### 🎙️ 语音与视觉辅助功能
 
 - [x] 语音转文字模型接入（SenseVoice 等）
 - [x] 语音设置面板
+- [x] **OCR自动预处理与识别** - 内置 Tesseract 支持
 - [ ] **全局快捷键触发语音输入** - 任意界面快速唤起
 - [ ] **实时语音转文字** - 流式识别与反馈
 - [ ] **语音指令识别** - 自然语言控制应用
@@ -54,10 +55,10 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 
 #### 核心架构演进 (P0)
 
-- [ ] **统一数据层迁移 (Breaking Change)**
-  - [ ] 废弃渲染进程 Dexie (IndexedDB) 和 Redux-Persist 存储方案
-  - [ ] 全面转向主进程 **LibSQL + Drizzle ORM** 架构
-  - [ ] 实现主进程到渲染进程的标准化数据同步流 (StoreSyncService)
+- [x] **统一数据层迁移 (Breaking Change)**
+  - [x] 废弃渲染进程 Dexie (IndexedDB) 和 Redux-Persist 存储方案
+  - [x] 全面转向主进程 **LibSQL + Drizzle ORM** 架构
+  - [x] 实现主进程到渲染进程的标准化数据同步流 (StoreSyncService)
 - [x] **底层大模型引擎重构 (aiCore)**
   - [x] 基于 Vercel AI SDK v5 构建统一模型抽象层
   - [x] 清理旧版冗余 Provider，实现按需加载与动态导入
@@ -91,7 +92,10 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 - [ ] **法律 Agent 深度定制**
   - [ ] 针对不同法域（民事、刑事、行政）的专业 Agent 角色
   - [ ] Agent 长期记忆与办案风格设定
-- [ ] **知识库增强**
+- [x] **知识库增强**
+  - [x] 法律文档专用加载器与分块器优化
+  - [x] 文档分块策略与搜索结果展示优化
+  - [x] 知识引用上下文高亮与折叠展示
   - [ ] 法律法规知识图谱
   - [ ] 案例库智能检索 (Hybrid Search)
 
@@ -167,7 +171,7 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 #### 阶段一：架构与数据底座 (Foundation)
 
 - [x] **AI Core 深度集成**：基于 Vercel AI SDK v5 重构底层模型层
-- [ ] **统一数据层 (LibSQL + Drizzle)**：全面迁移至主进程存储，废弃渲染进程 DB (P0)
+- [x] **统一数据层 (LibSQL + Drizzle)**：全面迁移至主进程存储，废弃渲染进程 DB (P0)
 - [ ] **插件引擎基础**：实现基于钩子 (Hooks) 的插件生命周期拦截
 - [ ] **OpenAI Agents SDK**：为未来 Agentic 架构预留执行器接口
 
@@ -211,8 +215,8 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 
 ### 🔴 P0: 核心架构迁移与底座重构 (2026 Q3)
 
-- [ ] **统一数据层迁移**：废弃渲染进程 Dexie/Redux-Persist，全面转向主进程 LibSQL + Drizzle
-- [ ] **数据同步机制**：建立主进程到渲染进程的单向/双向数据同步流 (StoreSyncService 增强)
+- [x] **统一数据层迁移**：废弃渲染进程 Dexie/Redux-Persist，全面转向主进程 LibSQL + Drizzle
+- [x] **数据同步机制**：建立主进程到渲染进程的单向/双向数据同步流 (StoreSyncService 增强)
 - [ ] **AI Core 完整适配**：将所有 LLM Provider 迁移至基于 Vercel AI SDK v5 的 `packages/aiCore`
 - [ ] **插件引擎基础**：实现基于钩子 (Hooks) 的插件加载与生命周期管理机制
 
