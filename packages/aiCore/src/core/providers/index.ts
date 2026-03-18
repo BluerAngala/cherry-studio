@@ -82,3 +82,6 @@ export { formatPrivateKey } from './utils'
 
 // Hub Provider 功能
 export { createHubProvider, type HubProviderConfig, HubProviderError } from './HubProvider'
+
+// 模型列表获取功能
+export { isSupportedModel, listModels, type ModelInfo, type ModelListOptions, type ModelListResult } from './modelList'

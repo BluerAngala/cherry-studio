@@ -124,6 +124,7 @@ const notifyReduxStoreReady = () => {
 
 notifyReduxStoreReady()
 
+// Initialize the persistor and set up post-rehydration actions
 export const persistor = persistStore(store, undefined, () => {
   // Initialize notes path after rehydration if empty
   const state = store.getState()

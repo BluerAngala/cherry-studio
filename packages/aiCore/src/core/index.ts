@@ -15,3 +15,13 @@ export type { ModelConfig as ModelConfigType } from './models/types'
 export type { ToolUseRequestContext } from './plugins/built-in/toolUsePlugin/type'
 export { createExecutor, createOpenAICompatibleExecutor } from './runtime'
 export type { RuntimeConfig } from './runtime/types'
+
+// SDK 客户端
+export {
+  AzureOpenAI,
+  type AzureOpenAIClientOptions,
+  createAzureOpenAIClient,
+  createOpenAIClient,
+  OpenAI,
+  type OpenAIClientOptions
+} from './sdk'

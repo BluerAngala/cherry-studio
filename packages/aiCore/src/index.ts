@@ -36,6 +36,15 @@ export { PluginEngine } from './core/runtime/pluginEngine'
 // ==================== 类型工具 ====================
 export type { AiSdkModel } from './core/providers'
 
+// ==================== 模型列表 ====================
+export {
+  isSupportedModel,
+  listModels,
+  type ModelInfo,
+  type ModelListOptions,
+  type ModelListResult
+} from './core/providers'
+
 // ==================== 选项 ====================
 export {
   createAnthropicOptions,
@@ -61,3 +70,13 @@ export {
 // ==================== 包信息 ====================
 export const AI_CORE_VERSION = '1.0.0'
 export const AI_CORE_NAME = '@cherrystudio/ai-core'
+
+// ==================== SDK 客户端 ====================
+export {
+  AzureOpenAI,
+  type AzureOpenAIClientOptions,
+  createAzureOpenAIClient,
+  createOpenAIClient,
+  OpenAI,
+  type OpenAIClientOptions
+} from './core/sdk'

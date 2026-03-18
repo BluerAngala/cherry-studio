@@ -1,4 +1,4 @@
-import OpenAI from '@cherrystudio/openai'
+import { OpenAI } from '@cherrystudio/ai-core'
 import type { ChatCompletionCreateParams, ChatCompletionCreateParamsStreaming } from '@cherrystudio/openai/resources'
 import type { Provider } from '@types'
 
@@ -128,7 +128,6 @@ export class ChatCompletionService {
   validateRequest(request: ChatCompletionCreateParams): ValidationResult {
     const errors: string[] = []
 
-    // Validate messages
     if (!request.messages) {
       errors.push('Messages array is required')
     } else if (!Array.isArray(request.messages)) {
@@ -136,7 +135,6 @@ export class ChatCompletionService {
     } else if (request.messages.length === 0) {
       errors.push('Messages array cannot be empty')
     } else {
-      // Validate each message
       request.messages.forEach((message, index) => {
         if (!message.role) {
           errors.push(`Message ${index}: role is required`)
@@ -146,8 +144,6 @@ export class ChatCompletionService {
         }
       })
     }
-
-    // Validate optional parameters
 
     return {
       isValid: errors.length === 0,
@@ -256,5 +252,4 @@ export class ChatCompletionService {
   }
 }
 
-// Export singleton instance
 export const chatCompletionService = new ChatCompletionService()

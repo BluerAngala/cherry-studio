@@ -67,12 +67,14 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 - [x] **底层大模型引擎重构 (aiCore)**
   - [x] 基于 Vercel AI SDK v5 构建统一模型抽象层
   - [x] 清理旧版冗余 Provider，实现按需加载与动态导入
+  - [x] **完全废弃 Legacy 层** - 删除 ~7,700 行遗留代码，统一使用 `ModernAiProvider`
 - [x] **核心 Provider 迁移 (Phase 1: OpenAI)** ✅ **已完成**
   - [x] 新架构 Provider 定义（`packages/aiCore` 中基于 `@ai-sdk/openai`）
   - [x] 迁移 `models()` 与 `getEmbeddingDimensions()` 至主进程 IPC 服务
   - [x] 验证流式响应、工具调用与 Token 计费的一致性
   - [x] 完全废弃旧版 `OpenAIBaseClient`（图像生成已迁移至 AI SDK）
   - [x] 移除 `legacyProvider` 依赖
+  - [x] 迁移 `KnowledgeService` 的 rerank 功能至新架构
 - [ ] **OpenCode Agent 架构重构**
   - [ ] 基于 `@opencode-ai/sdk` 统一 Agent 生命周期管理
   - [ ] 支持多 Agent 协作模式与能力动态扩展
@@ -178,7 +180,7 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 
 #### 阶段一：架构与数据底座 (Foundation)
 
-- [x] **AI Core 深度集成**：基于 Vercel AI SDK v5 重构底层模型层
+- [x] **AI Core 深度集成**：基于 Vercel AI SDK v5 重构底层模型层 ✅ **Legacy 层已完全废弃**
 - [x] **统一数据层 (LibSQL + Drizzle)**：全面迁移至主进程存储，废弃渲染进程 DB (P0)
 - [ ] **插件引擎基础**：实现基于钩子 (Hooks) 的插件生命周期拦截
 - [ ] **OpenAI Agents SDK**：为未来 Agentic 架构预留执行器接口
@@ -231,7 +233,7 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
   - [x] 翻译相关数据 (`TranslateService`)
   - [x] 清理渲染进程 Dexie 数据层依赖
 - [x] **数据同步机制**：建立主进程到渲染进程的单向/双向数据同步流 (StoreSyncService 增强)
-- [ ] **AI Core 完整适配**：将所有 LLM Provider 迁移至基于 Vercel AI SDK v5 的 `packages/aiCore` ⏳ **OpenAI 部分完成**
+- [ ] **AI Core 完整适配**：将所有 LLM Provider 迁移至基于 Vercel AI SDK v5 的 `packages/aiCore` ⏳ **ModelService, API Server 已完成迁移**
 - [ ] **插件引擎基础**：实现基于钩子 (Hooks) 的插件加载与生命周期管理机制
 
 ### 🟡 P1: 智能搜索与法律业务增强 (2026 Q4)
@@ -303,10 +305,11 @@ Cherry Law 是基于 [Cherry Studio](https://github.com/CherryHQ/cherry-studio) 
 
 ## 📜 更新日志
 
-| 日期       | 版本   | 更新内容                                     |
-| ---------- | ------ | -------------------------------------------- |
-| 2026-03-18 | v0.9.8 | 修复数据迁移bug，完成核心数据层迁移至 LibSQL |
-| 2026-03-17 | v0.1.0 | 初始路线图发布                               |
+| 日期       | 版本   | 更新内容                                          |
+| ---------- | ------ | ------------------------------------------------- |
+| 2026-03-18 | v0.9.9 | 完全废弃 aiCore Legacy 层，删除 ~7,700 行遗留代码 |
+| 2026-03-18 | v0.9.8 | 修复数据迁移bug，完成核心数据层迁移至 LibSQL      |
+| 2026-03-17 | v0.1.0 | 初始路线图发布                                    |
 
 ---
 
