@@ -9,9 +9,7 @@ import {
 } from '@renderer/hooks/useAwsBedrock'
 import { createVertexProvider, isVertexAIConfigured } from '@renderer/hooks/useVertexAI'
 import { getProviderByModel } from '@renderer/services/AssistantService'
-import { getProviderById } from '@renderer/services/ProviderService'
 import store from '@renderer/store'
-import type { EndpointType } from '@renderer/types'
 import { type Model, type Provider, SystemProviderIds } from '@renderer/types'
 import type { OpenAICompletionsStreamOptions } from '@renderer/types/aiCoreTypes'
 import {
@@ -157,13 +155,7 @@ interface VertexExtraOptions extends BaseExtraOptions {
   }
 }
 
-interface CherryInExtraOptions extends BaseExtraOptions {
-  endpointType?: EndpointType
-  anthropicBaseURL?: string
-  geminiBaseURL?: string
-}
-
-type ExtraOptions = BedrockExtraOptions | AzureOpenAIExtraOptions | VertexExtraOptions | CherryInExtraOptions
+type ExtraOptions = BedrockExtraOptions | AzureOpenAIExtraOptions | VertexExtraOptions | BaseExtraOptions
 
 /**
  * 将 Provider 配置转换为新 AI SDK 格式
@@ -231,11 +223,7 @@ export function providerToAiSdkConfig(actualProvider: Provider, model: Model): A
     aiSdkProviderId === 'azure-responses'
   ) {
     mode = 'responses'
-  } else if (
-    aiSdkProviderId === 'openai' ||
-    (aiSdkProviderId === 'cherryin' && actualProvider.type === 'openai') ||
-    aiSdkProviderId === 'azure'
-  ) {
+  } else if (aiSdkProviderId === 'openai' || aiSdkProviderId === 'azure') {
     mode = 'chat'
   }
 
@@ -316,22 +304,6 @@ export function providerToAiSdkConfig(actualProvider: Provider, model: Model): A
       }
     } satisfies VertexExtraOptions
     baseConfig.baseURL += aiSdkProviderId === 'google-vertex' ? '/publishers/google' : '/publishers/anthropic/models'
-  } else if (aiSdkProviderId === 'cherryin') {
-    // CherryIN API Host
-    const cherryinProvider = getProviderById(SystemProviderIds.cherryin)
-    const endpointType: EndpointType | undefined = model.endpoint_type
-    let anthropicBaseURL: string | undefined
-    let geminiBaseURL: string | undefined
-    if (cherryinProvider) {
-      anthropicBaseURL = cherryinProvider.anthropicApiHost + '/v1'
-      geminiBaseURL = cherryinProvider.apiHost + '/v1beta/models'
-    }
-    extraOptions = {
-      ...baseExtraOptions,
-      endpointType,
-      anthropicBaseURL,
-      geminiBaseURL
-    } satisfies CherryInExtraOptions
   } else {
     extraOptions = baseExtraOptions
   }

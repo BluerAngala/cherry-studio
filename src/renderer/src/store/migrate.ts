@@ -2940,7 +2940,7 @@ const migrateConfig = {
   '183': (state: RootState) => {
     try {
       state.llm.providers.forEach((provider) => {
-        if (provider.id === SystemProviderIds.cherryin) {
+        if (provider.id === 'cherryin') {
           provider.apiHost = 'https://open.cherryin.cc'
           provider.anthropicApiHost = 'https://open.cherryin.cc'
         }

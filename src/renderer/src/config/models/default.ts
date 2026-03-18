@@ -18,7 +18,6 @@ export const SYSTEM_MODELS: Record<SystemProviderId | 'defaultModel', Model[]> =
     // Default quick assistant model
     qwen38bModel
   ],
-  cherryin: [],
   vertexai: [],
   sophnet: [],
   '302ai': [

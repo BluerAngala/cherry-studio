@@ -96,8 +96,6 @@ export async function createAiSdkProvider(config: AiSdkConfig): Promise<AiSdkPro
       config.providerId = `${config.providerId}-chat`
     } else if (config.providerId === 'azure' && config.options?.mode === 'responses') {
       config.providerId = `${config.providerId}-responses`
-    } else if (config.providerId === 'cherryin' && config.options?.mode === 'chat') {
-      config.providerId = 'cherryin-chat'
     }
     localProvider = await createProviderCore(config.providerId, config.options)
 

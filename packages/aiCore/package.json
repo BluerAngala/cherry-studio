@@ -39,7 +39,6 @@
     "ai": "^6.0.103"
   },
   "dependencies": {
-    "@cherrystudio/ai-sdk-provider": "workspace:*",
     "@ai-sdk/anthropic": "^3.0.48",
     "@ai-sdk/azure": "^3.0.37",
     "@ai-sdk/deepseek": "^2.0.20",

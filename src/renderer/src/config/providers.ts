@@ -1,5 +1,4 @@
 import AnthropicProviderLogo from '@renderer/assets/images/providers/anthropic.png'
-import CherryInProviderLogo from '@renderer/assets/images/providers/cherryin.png'
 import OpenAiProviderLogo from '@renderer/assets/images/providers/openai.png'
 import SiliconFlowProviderLogo from '@renderer/assets/images/providers/silicon.png'
 import type { SystemProvider, SystemProviderId } from '@renderer/types'
@@ -19,17 +18,6 @@ export const CHERRYAI_PROVIDER: SystemProvider = {
 }
 
 export const SYSTEM_PROVIDERS_CONFIG: Partial<Record<SystemProviderId, SystemProvider>> = {
-  cherryin: {
-    id: 'cherryin',
-    name: 'CherryIN',
-    type: 'openai',
-    apiKey: '',
-    apiHost: 'https://open.cherryin.net',
-    anthropicApiHost: 'https://open.cherryin.net',
-    models: [],
-    isSystem: true,
-    enabled: true
-  },
   silicon: {
     id: 'silicon',
     name: 'Silicon',
@@ -67,7 +55,6 @@ export const SYSTEM_PROVIDERS_CONFIG: Partial<Record<SystemProviderId, SystemPro
 export const SYSTEM_PROVIDERS: SystemProvider[] = Object.values(SYSTEM_PROVIDERS_CONFIG) as SystemProvider[]
 
 export const PROVIDER_LOGO_MAP: Partial<Record<SystemProviderId, string>> = {
-  cherryin: CherryInProviderLogo,
   silicon: SiliconFlowProviderLogo,
   anthropic: AnthropicProviderLogo,
   openai: OpenAiProviderLogo
@@ -94,17 +81,6 @@ type ProviderUrls = {
 }
 
 export const PROVIDER_URLS: Partial<Record<SystemProviderId, ProviderUrls>> = {
-  cherryin: {
-    api: {
-      url: 'https://open.cherryin.net'
-    },
-    websites: {
-      official: 'https://open.cherryin.ai',
-      apiKey: 'https://open.cherryin.ai/console/token',
-      docs: 'https://open.cherryin.ai',
-      models: 'https://open.cherryin.ai/pricing'
-    }
-  },
   silicon: {
     api: {
       url: 'https://api.siliconflow.cn'
