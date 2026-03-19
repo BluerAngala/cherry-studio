@@ -112,9 +112,11 @@ export class AgentApiClient {
       const fullUrl = queryString ? `${url}?${queryString}` : url
 
       const response = await this.axios.get(fullUrl)
+      console.log('[AgentApiClient] listAgents response:', JSON.stringify(response.data, null, 2))
       const result = ListAgentsResponseSchema.safeParse(response.data)
       if (!result.success) {
-        throw new Error('Not a valid Agents array.')
+        console.error('[AgentApiClient] Validation error:', result.error)
+        throw new Error(`Not a valid Agents array: ${result.error.message}`)
       }
       return result.data
     } catch (error) {

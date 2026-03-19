@@ -11,7 +11,7 @@ import { and, desc, eq, not } from 'drizzle-orm'
 import { BaseService } from '../BaseService'
 import { sessionMessagesTable } from '../database/schema'
 import type { AgentStreamEvent } from '../interfaces/AgentStreamInterface'
-import OpenCodeService from './opencode'
+import AiCoreAgentService from './AiCoreAgentService'
 
 const logger = loggerService.withContext('SessionMessageService')
 
@@ -95,7 +95,7 @@ class TextStreamAccumulator {
 
 export class SessionMessageService extends BaseService {
   private static instance: SessionMessageService | null = null
-  private oc: OpenCodeService = new OpenCodeService()
+  private agentService: AiCoreAgentService = AiCoreAgentService.getInstance()
 
   static getInstance(): SessionMessageService {
     if (!SessionMessageService.instance) {
@@ -164,7 +164,7 @@ export class SessionMessageService extends BaseService {
     const agentSessionId = await this.getLastAgentSessionId(session.id)
     logger.debug('Session Message stream message data:', { message: req, session_id: agentSessionId })
 
-    const agentStream = await this.oc.invoke(req.content, session, abortController, agentSessionId, {
+    const agentStream = await this.agentService.invoke(req.content, session, abortController, agentSessionId, {
       effort: req.effort,
       thinking: req.thinking
     })
