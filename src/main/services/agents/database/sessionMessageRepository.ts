@@ -74,6 +74,10 @@ class AgentMessageRepository extends BaseService {
       }
     }
 
+    if (deserialized.metadata === null) {
+      deserialized.metadata = undefined
+    }
+
     return deserialized
   }
 

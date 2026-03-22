@@ -152,7 +152,7 @@ export const AgentSessionMessageEntitySchema = z.object({
   role: SessionMessageRoleSchema,
   content: z.unknown(),
   agent_session_id: z.string(), // agent session id, use to resume agent session
-  metadata: z.record(z.string(), z.any()).optional(), // Additional metadata (optional)
+  metadata: z.preprocess((value) => (value === null ? undefined : value), z.record(z.string(), z.any()).optional()), // Additional metadata (optional)
   created_at: z.iso.datetime(), // ISO timestamp
   updated_at: z.iso.datetime() // ISO timestamp
 })
