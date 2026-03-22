@@ -29,6 +29,7 @@ import type { Assistant, Model, Topic, TranslateLanguage } from '@renderer/types
 import { type Message, MessageBlockStatus, MessageBlockType } from '@renderer/types/newMessage'
 import { captureScrollableAsBlob, captureScrollableAsDataURL, classNames } from '@renderer/utils'
 import { abortCompletion } from '@renderer/utils/abortController'
+import { writeTextToClipboard } from '@renderer/utils/clipboard'
 import { copyMessageAsPlainText } from '@renderer/utils/copy'
 import { isAbortError } from '@renderer/utils/error'
 import {
@@ -196,7 +197,7 @@ const MessageMenubar: FC<Props> = (props) => {
   }, [message])
 
   const onCopy = useCallback(
-    (e: React.MouseEvent) => {
+    async (e: React.MouseEvent) => {
       e.stopPropagation()
 
       const currentMessageId = message.id // from props
@@ -209,10 +210,14 @@ const MessageMenubar: FC<Props> = (props) => {
         contentToCopy = getMainTextContent(message)
       }
 
-      navigator.clipboard.writeText(removeTrailingDoubleSpaces(contentToCopy.trimStart()))
-
-      window.toast.success(t('message.copied'))
-      setCopied(true)
+      try {
+        await writeTextToClipboard(removeTrailingDoubleSpaces(contentToCopy.trimStart()))
+        window.toast.success(t('message.copied'))
+        setCopied(true)
+      } catch (error) {
+        logger.error('Failed to copy message content', error as Error)
+        window.toast.error(t('message.copy.failed'))
+      }
     },
     [message, setCopied, t] // message is needed for message.id and as a fallback. t is for translation.
   )
@@ -868,7 +873,7 @@ const buttonRenderers: Record<MessageMenubarButtonId, MessageMenubarButtonRender
             {
               label: '📋 ' + t('common.copy'),
               key: 'translate-copy',
-              onClick: () => {
+              onClick: async () => {
                 const translationBlocks = message.blocks
                   .map((blockId) => blockEntities[blockId])
                   .filter((block) => block?.type === 'translation')
@@ -880,8 +885,13 @@ const buttonRenderers: Record<MessageMenubarButtonId, MessageMenubarButtonRender
                     .trim()
 
                   if (translationContent) {
-                    navigator.clipboard.writeText(translationContent)
-                    window.toast.success(t('translate.copied'))
+                    try {
+                      await writeTextToClipboard(translationContent)
+                      window.toast.success(t('translate.copied'))
+                    } catch (error) {
+                      logger.error('Failed to copy translated content', error as Error)
+                      window.toast.error(t('message.copy.failed'))
+                    }
                   } else {
                     window.toast.warning(t('translate.empty'))
                   }

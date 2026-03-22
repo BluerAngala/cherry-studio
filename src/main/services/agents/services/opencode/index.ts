@@ -43,6 +43,17 @@ function validateModelForOpenCode(model: string): { valid: boolean; error?: stri
  */
 function findOpencodePath(): { command: string; args: string[] } | null {
   const fs = require('node:fs')
+  const { execSync } = require('node:child_process')
+
+  try {
+    const result = execSync('where opencode 2>nul || which opencode 2>/dev/null', { encoding: 'utf-8' }).trim()
+    if (result) {
+      logger.info('Found system opencode in PATH')
+      return { command: 'opencode', args: [] }
+    }
+  } catch {
+    // Ignore and continue searching bundled locations
+  }
 
   // 0. 首先尝试使用包装脚本（解决平台包名不匹配问题）
   const appRoot = process.cwd()

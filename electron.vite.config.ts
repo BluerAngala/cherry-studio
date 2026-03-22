@@ -1,7 +1,8 @@
-import react from '@vitejs/plugin-react-swc'
-import { CodeInspectorPlugin } from 'code-inspector-plugin'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
+
+import react from '@vitejs/plugin-react-swc'
+import { CodeInspectorPlugin } from 'code-inspector-plugin'
 import { defineConfig } from 'electron-vite'
 import { dirname, resolve } from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'

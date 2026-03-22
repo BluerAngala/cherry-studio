@@ -171,7 +171,10 @@ const swaggerOptions = {
       }
     ]
   },
-  apis: [path.resolve(ROOT_DIR, 'src/main/apiServer/routes/**/*.ts'), path.resolve(ROOT_DIR, 'src/main/apiServer/app.ts')]
+  apis: [
+    path.resolve(ROOT_DIR, 'src/main/apiServer/routes/**/*.ts'),
+    path.resolve(ROOT_DIR, 'src/main/apiServer/app.ts')
+  ]
 }
 
 function generate() {

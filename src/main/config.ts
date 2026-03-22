@@ -1,6 +1,7 @@
+import path from 'node:path'
+
 import { isDev, isWin } from '@main/constant'
 import { app } from 'electron'
-import path from 'node:path'
 
 import { getDataPath } from './utils'
 
