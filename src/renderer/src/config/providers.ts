@@ -4,18 +4,7 @@ import SiliconFlowProviderLogo from '@renderer/assets/images/providers/silicon.p
 import type { SystemProvider, SystemProviderId } from '@renderer/types'
 import { OpenAIServiceTiers } from '@renderer/types'
 
-import { qwen38bModel, SYSTEM_MODELS } from './models'
-
-export const CHERRYAI_PROVIDER: SystemProvider = {
-  id: 'cherryai' as SystemProviderId,
-  name: 'CherryAI',
-  type: 'openai',
-  apiKey: '',
-  apiHost: 'https://api.cherry-ai.com',
-  models: [qwen38bModel],
-  isSystem: true,
-  enabled: true
-}
+import { SYSTEM_MODELS } from './models'
 
 export const SYSTEM_PROVIDERS_CONFIG: Partial<Record<SystemProviderId, SystemProvider>> = {
   silicon: {
@@ -27,7 +16,7 @@ export const SYSTEM_PROVIDERS_CONFIG: Partial<Record<SystemProviderId, SystemPro
     anthropicApiHost: 'https://api.siliconflow.cn',
     models: SYSTEM_MODELS.silicon,
     isSystem: true,
-    enabled: false
+    enabled: true
   },
   anthropic: {
     id: 'anthropic',

@@ -8,9 +8,9 @@ import {
 } from '@renderer/config/constant'
 import { allMinApps } from '@renderer/config/minapps'
 import {
+  defaultSiliconModel,
   isFunctionCallingModel,
   isNotSupportTextDeltaModel,
-  qwen38bModel,
   SYSTEM_MODELS
 } from '@renderer/config/models'
 import { BUILTIN_OCR_PROVIDERS, BUILTIN_OCR_PROVIDERS_MAP, DEFAULT_OCR_PROVIDER } from '@renderer/config/ocr'
@@ -3142,20 +3142,20 @@ const migrateConfig = {
     try {
       const GLM_4_5_FLASH_MODEL = 'glm-4.5-flash'
       if (state.llm.defaultModel?.provider === 'cherryai' && state.llm.defaultModel?.id === GLM_4_5_FLASH_MODEL) {
-        state.llm.defaultModel = qwen38bModel
+        state.llm.defaultModel = defaultSiliconModel
       }
       if (state.llm.quickModel?.provider === 'cherryai' && state.llm.quickModel?.id === GLM_4_5_FLASH_MODEL) {
-        state.llm.quickModel = qwen38bModel
+        state.llm.quickModel = defaultSiliconModel
       }
       if (state.llm.translateModel?.provider === 'cherryai' && state.llm.translateModel?.id === GLM_4_5_FLASH_MODEL) {
-        state.llm.translateModel = qwen38bModel
+        state.llm.translateModel = defaultSiliconModel
       }
       state.assistants.assistants.forEach((assistant) => {
         if (assistant.model?.provider === 'cherryai' && assistant.model?.id === GLM_4_5_FLASH_MODEL) {
-          assistant.model = qwen38bModel
+          assistant.model = defaultSiliconModel
         }
         if (assistant.defaultModel?.provider === 'cherryai' && assistant.defaultModel?.id === GLM_4_5_FLASH_MODEL) {
-          assistant.defaultModel = qwen38bModel
+          assistant.defaultModel = defaultSiliconModel
         }
       })
       // Initialize mini app region filter setting

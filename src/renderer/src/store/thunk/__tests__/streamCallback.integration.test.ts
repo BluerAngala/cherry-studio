@@ -51,10 +51,10 @@ vi.mock('@renderer/config/models', async (importOriginal) => {
       provider: 'cherryai',
       group: 'GLM-4.5'
     },
-    qwen38bModel: {
+    defaultSiliconModel: {
       id: 'Qwen/Qwen3-8B',
-      name: 'Qwen3-8B',
-      provider: 'cherryai',
+      name: 'Qwen/Qwen3-8B',
+      provider: 'silicon',
       group: 'Qwen'
     },
     SYSTEM_MODELS: {

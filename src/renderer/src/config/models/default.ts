@@ -1,22 +1,22 @@
 import type { Model, SystemProviderId } from '@renderer/types'
 
-export const qwen38bModel: Model = {
+export const defaultSiliconModel: Model = {
   id: 'Qwen/Qwen3-8B',
-  name: 'Qwen3-8B',
-  provider: 'cherryai',
+  name: 'Qwen/Qwen3-8B',
+  provider: 'silicon',
   group: 'Qwen'
 }
 
 export const SYSTEM_MODELS: Record<SystemProviderId | 'defaultModel', Model[]> = {
   defaultModel: [
     // Default assistant model
-    qwen38bModel,
+    defaultSiliconModel,
     // Default topic naming model
-    qwen38bModel,
+    defaultSiliconModel,
     // Default translation model
-    qwen38bModel,
+    defaultSiliconModel,
     // Default quick assistant model
-    qwen38bModel
+    defaultSiliconModel
   ],
   vertexai: [],
   sophnet: [],
